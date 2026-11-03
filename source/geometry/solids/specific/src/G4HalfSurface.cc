@@ -16,7 +16,7 @@ G4double G4HalfSurface::Subtraction(const G4ThreeVector& p, const G4HalfSurface&
     return std::max(this->ImplicitFunction(p), -1*surface.ImplicitFunction(p));
 }
 
-std::vector<G4ThreeVector> G4HalfSurface::RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v)
+std::vector<G4ThreeVector> G4HalfSurface::RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
     const G4ThreeVector vUnit = v/v.mag();
 

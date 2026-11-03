@@ -16,7 +16,7 @@ public:
     virtual G4double ImplicitFunction(const G4ThreeVector& p) const = 0;
 
     virtual G4double Union(const G4ThreeVector& p, const G4HalfSurface& s) const;
-    virtual std::vector<G4ThreeVector> RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v);
+    virtual std::vector<G4ThreeVector> RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v) const;
     virtual G4double Intersection(const G4ThreeVector& p, const G4HalfSurface& s) const;
     virtual G4double Subtraction(const G4ThreeVector& p, const G4HalfSurface& s) const;
 

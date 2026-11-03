@@ -21,6 +21,7 @@ geant4_add_module(G4specsolids
     G4GenericPolycone.icc
     G4GenericTrap.hh
     G4GenericTrap.icc
+        G4HalfQuadric.hh
     G4Hype.hh
     G4Hype.icc
     G4IntersectingCone.hh
@@ -95,6 +96,7 @@ geant4_add_module(G4specsolids
     G4ExtrudedSolid.cc
     G4GenericPolycone.cc
     G4GenericTrap.cc
+        G4HalfQuadric.cc
     G4Hype.cc
     G4IntersectingCone.cc
     G4Paraboloid.cc
