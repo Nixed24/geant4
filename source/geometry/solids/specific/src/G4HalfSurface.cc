@@ -13,8 +13,8 @@ G4double G4HalfSurface::Subtraction(const G4ThreeVector& p, const G4HalfSurface&
 
 EInside G4HalfSurface::Inside(const G4ThreeVector& p) const
 {
-    if (this->ImplicitFunction(p) < 0) return kInside;
-    if (this->ImplicitFunction(p) > 0) return kOutside;
+    if (this->ImplicitFunction(p) < -kCarTolerance) return kInside;
+    if (this->ImplicitFunction(p) > kCarTolerance) return kOutside;
     return kSurface;
 }
 

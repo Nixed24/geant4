@@ -4,7 +4,10 @@
 #include "G4Types.hh"
 #include "G4VSolid.hh"
 #include "G4AffineTransform.hh"
+#include "G4GeometryTolerance.hh"
 #include <vector>
+
+const G4double kCarTolerance = G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
 
 class G4HalfSurface
 {
