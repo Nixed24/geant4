@@ -34,7 +34,6 @@ public:
     // Provides a new implicit function for a subtraction with a solid
     G4double Subtraction(const G4ThreeVector& p, const G4HalfIntersectionSolid& subtraction) const;
 
-    const G4HalfSurface& WhatSurfaceAmIOn(const G4ThreeVector& p) const;
 
     // --- Inherited functions ---
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
@@ -46,12 +45,12 @@ public:
 
     G4double DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const override;
     G4double DistanceToIn(const G4ThreeVector& p) const override;
-    G4double DistanceToIn(const G4ThreeVector& p, const G4HalfSurface*& s) const;
+    G4double DistanceToIn(const G4ThreeVector& p, G4ThreeVector* n) const;
 
     G4double DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v, const G4bool calcNorm, G4bool* validNorm,
                            G4ThreeVector* n) const override;
     G4double DistanceToOut(const G4ThreeVector& p) const override;
-    G4double DistanceToOut(const G4ThreeVector& p, const G4HalfSurface*& s) const;
+    G4double DistanceToOut(const G4ThreeVector& p, G4ThreeVector* n) const;
 
     G4GeometryType GetEntityType() const override;
     void DescribeYourselfTo(G4VGraphicsScene& scene) const override;
