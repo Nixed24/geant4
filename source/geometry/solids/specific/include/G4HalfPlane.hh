@@ -13,6 +13,7 @@ public:
     G4HalfPlane(const G4ThreeVector& normal, const G4double& distance);
     G4double ImplicitFunction(const G4ThreeVector& p) const override;
 
+    G4ThreeVector closestSurfacePoint(const G4ThreeVector& p) const override;
     G4ThreeVector SurfaceNormal(const G4ThreeVector& /*p*/) const override {return normal;}
 
     G4double DistanceToSurface(const G4ThreeVector& p) const override;
