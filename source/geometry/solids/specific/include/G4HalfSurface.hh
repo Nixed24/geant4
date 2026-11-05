@@ -7,7 +7,6 @@
 #include "G4GeometryTolerance.hh"
 #include <vector>
 
-const G4double kCarTolerance = G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
 
 class G4HalfSurface
 {
