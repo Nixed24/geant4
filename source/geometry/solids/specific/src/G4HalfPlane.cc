@@ -43,9 +43,9 @@ G4double G4HalfPlane::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVec
     G4double implicitFunction = this->ImplicitFunction(p);
 
     if (this->Inside(p) == kSurface) return 0;
-    if (projection < -kCarTolerance && implicitFunction < -kCarTolerance) return kInfinity;
-    if (projection > kCarTolerance && implicitFunction > kCarTolerance) return kInfinity;
-    if (-kCarTolerance <= projection && projection <= kCarTolerance) return kInfinity; // Parallel to plane
+    if (projection < 0 && implicitFunction < -kCarTolerance) return kInfinity;
+    if (projection > 0 && implicitFunction > kCarTolerance) return kInfinity;
+    if (projection == 0) return kInfinity; // Parallel to plane
 
     return -implicitFunction/projection;
 }
