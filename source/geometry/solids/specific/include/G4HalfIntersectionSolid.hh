@@ -5,6 +5,14 @@
 #include <vector>
 #include "G4VSolid.hh"
 
+struct RayHit
+{
+    const G4HalfSurface* targetSurface;
+    G4bool isSubtraction;
+    G4ThreeVector intersection;
+    G4double distance;
+};
+
 class G4HalfIntersectionSolid : public G4VSolid
 {
     std::vector<G4HalfSurface*> intersectionSurfaces_;
@@ -17,6 +25,9 @@ public:
 
     void AddIntersectionSurface(G4HalfSurface& s);
     void AddSubtractionSurface(G4HalfSurface& s);
+
+    void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
+        std::vector<RayHit>&) const;
 
     G4double ImplicitFunction(const G4ThreeVector &p) const;
 
