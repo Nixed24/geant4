@@ -40,7 +40,7 @@ G4double G4HalfPlane::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVec
     if (this->Inside(p) == kSurface) return 0;
     if (projection < -kCarTolerance && implicitFunction < -kCarTolerance) return kInfinity;
     if (projection > kCarTolerance && implicitFunction > kCarTolerance) return kInfinity;
-    if (-kCarTolerance < projection || projection < kCarTolerance) return kInfinity; // Parallel to plane
+    if (-kCarTolerance <= projection && projection <= kCarTolerance) return kInfinity; // Parallel to plane
 
     return -implicitFunction/projection;
 }
