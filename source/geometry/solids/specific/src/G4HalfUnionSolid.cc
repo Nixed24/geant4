@@ -97,5 +97,48 @@ G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p) const
 
 G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
+    if (this->Inside(p) == kInside) return 0;
+    if (this->Inside(p) == kSurface)
+    {
+        GetOnSurfaceNormal(p, *n);
+        return 0;
+    }
 
+    G4double distanceToInI = kInfinity;
+    G4double distanceToInS = kInfinity;
+
+    G4ThreeVector normI;
+    G4ThreeVector normS;
+
+    G4ThreeVector candidateNormal;
+
+    for (const G4HalfSolid* solid : intersectionSolids_)
+    {
+        G4double distance = solid->DistanceToIn(p, calcNorm,
+            (calcNorm && n != nullptr) ? &candidateNormal : nullptr);
+
+        if (distance < distanceToInI)
+        {
+            distanceToInI = distance;
+            if (calcNorm && n != nullptr) normI = candidateNormal;
+        }
+    }
+
+    for (const G4HalfSolid* solid : subtractionSolids_)
+    {
+       G4double distance = solid->DistanceToIn(p, calcNorm,
+            (calcNorm && n != nullptr) ? &candidateNormal : nullptr);
+
+        if (distance < distanceToInS)
+        {
+            distanceToInS = distance;
+            candidateNormal *= -1;
+            if (calcNorm && n != nullptr) normS = -candidateNormal;
+        }
+    }
+
+    G4double distanceToIn = (distanceToInI > distanceToInS) ? distanceToInI : distanceToInS;
+    n = (distanceToInI > distanceToInS) ? &normI : &normS;
+
+    return distanceToIn;
 }
