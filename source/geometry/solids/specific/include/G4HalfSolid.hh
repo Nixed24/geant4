@@ -16,8 +16,6 @@ protected:
     };
 
 public:
-
-
     G4HalfSolid(const G4String& name) : G4VSolid(name) {};
 
     // Populates a vector of RayHit structs with data about where the ray intersected
