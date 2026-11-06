@@ -29,8 +29,10 @@ public:
     using G4VSolid::DistanceToIn;
 
     // Calculates shortest distance from a point, passes normal by reference
-    virtual G4double DistanceToIn(const G4ThreeVector& p, G4ThreeVector* n) const = 0;
-    virtual G4double DistanceToOut(const G4ThreeVector& p, G4ThreeVector* n) const = 0;
+    virtual G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const = 0;
+    virtual G4double DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const = 0;
+
+    virtual void GetOnSurfaceNormal(const G4ThreeVector&, G4ThreeVector&) const = 0;
 };
 
 #endif //GEANT4_G4HALFSOLID_HH
