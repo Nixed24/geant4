@@ -20,7 +20,9 @@ public:
 
     G4HalfSolid(const G4String& name) : G4VSolid(name) {};
 
+    // Populates a vector of RayHit structs with data about where the ray intersected
     virtual void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const = 0;
+
     virtual G4double ImplicitFunction(const G4ThreeVector&) const = 0;
 
     EInside Inside(const G4ThreeVector&) const override;
@@ -33,6 +35,10 @@ public:
     virtual G4double DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const = 0;
 
     virtual void GetOnSurfaceNormal(const G4ThreeVector&, G4ThreeVector&) const = 0;
+
+    // Can be implemented in the base class if the derived classes have a defined GetRayIntersection
+    G4double DistanceToIn(const G4ThreeVector&, const G4ThreeVector&) const override;
+    G4double DistanceToOut(const G4ThreeVector&, const G4ThreeVector&, const G4bool, G4bool*, G4ThreeVector*) const override;
 };
 
 #endif //GEANT4_G4HALFSOLID_HH

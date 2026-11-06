@@ -154,45 +154,6 @@ G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4
     return std::abs(distanceToOut);
 }
 
-G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
-    const G4bool calcNorm, G4bool* validNorm, G4ThreeVector* n) const
-{
-    if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
-    if (validNorm != nullptr) *validNorm = false;
-
-    if (this->Inside(p) == kOutside) return 0;
-    if (this->Inside(p) == kSurface)
-    {
-        GetOnSurfaceNormal(p, *n);
-        return 0;
-    }
-
-    G4ThreeVector vUnit = v.unit();
-
-    std::vector<RayHit> rayHits;
-
-    GetRayIntersections(p, vUnit, rayHits);
-
-    for (const RayHit& hit : rayHits)
-    {
-        G4ThreeVector insideTestVector = hit.intersection + 2*kCarTolerance*vUnit;
-
-        if (this->Inside(insideTestVector) == kOutside)
-        {
-            if (calcNorm && n != nullptr)
-            {
-                *n = (hit.isSubtraction) ? -hit.targetSurface->SurfaceNormal(hit.intersection)
-                                         : hit.targetSurface->SurfaceNormal(hit.intersection);
-                if (validNorm != nullptr) *validNorm = true;
-            }
-
-            return std::abs(hit.distance);
-        }
-    }
-
-    return kInfinity;
-}
-
 G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p) const
 {
     if (this -> Inside(p) != kOutside) return 0;
@@ -253,26 +214,6 @@ G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4b
     return distanceToIn;
 }
 
-G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const
-{
-    if (this->Inside(p) != kOutside) return 0;
-    if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
-
-    G4ThreeVector vUnit = v.unit();
-
-    std::vector<RayHit> rayHits;
-
-    GetRayIntersections(p, vUnit, rayHits);
-
-    for (const RayHit& hit : rayHits)
-    {
-        G4ThreeVector insideTestVector = hit.intersection + 2*kCarTolerance*vUnit;
-
-        if (this->Inside(insideTestVector) == kInside) return hit.distance;
-    }
-
-    return kInfinity;
-}
 
 void G4HalfIntersectionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const
 {
