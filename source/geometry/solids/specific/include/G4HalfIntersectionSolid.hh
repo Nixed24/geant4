@@ -2,18 +2,11 @@
 #define G4HALF_INTERSECTION_SOLID_HH
 
 #include "G4HalfSurface.hh"
+#include "G4HalfSolid.hh"
 #include <vector>
 #include "G4VSolid.hh"
 
-struct RayHit
-{
-    const G4HalfSurface* targetSurface;
-    G4bool isSubtraction;
-    G4ThreeVector intersection;
-    G4double distance;
-};
-
-class G4HalfIntersectionSolid : public G4VSolid
+class G4HalfIntersectionSolid : public G4HalfSolid
 {
     std::vector<G4HalfSurface*> intersectionSurfaces_;
     std::vector<G4HalfSurface*> subtractionSurfaces_;
@@ -27,9 +20,9 @@ public:
     void AddSubtractionSurface(G4HalfSurface& s);
 
     void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
-        std::vector<RayHit>&) const;
+        std::vector<RayHit>&) const override;
 
-    G4double ImplicitFunction(const G4ThreeVector &p) const;
+    G4double ImplicitFunction(const G4ThreeVector &p) const override;
 
     // Provides a new implicit function for a subtraction with a solid
     G4double Subtraction(const G4ThreeVector& p, const G4HalfIntersectionSolid& subtraction) const;
@@ -37,20 +30,18 @@ public:
 
     // --- Inherited functions ---
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
-                           G4double& pMin, G4double& pMax) const override;
-
-    EInside Inside(const G4ThreeVector& p) const override;
+                           G4double& pMin, G4double& pMax) const override = 0;
 
     G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const override;
 
     G4double DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const override;
     G4double DistanceToIn(const G4ThreeVector& p) const override;
-    G4double DistanceToIn(const G4ThreeVector& p, G4ThreeVector* n) const;
+    G4double DistanceToIn(const G4ThreeVector& p, G4ThreeVector* n) const override;
 
     G4double DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v, const G4bool calcNorm, G4bool* validNorm,
                            G4ThreeVector* n) const override;
     G4double DistanceToOut(const G4ThreeVector& p) const override;
-    G4double DistanceToOut(const G4ThreeVector& p, G4ThreeVector* n) const;
+    G4double DistanceToOut(const G4ThreeVector& p, G4ThreeVector* n) const override;
 
     G4GeometryType GetEntityType() const override;
     void DescribeYourselfTo(G4VGraphicsScene& scene) const override;

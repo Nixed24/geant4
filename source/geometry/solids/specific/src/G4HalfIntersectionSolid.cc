@@ -10,7 +10,7 @@ const G4ThreeVector ORIGIN = {0,0,0};
 G4HalfIntersectionSolid::G4HalfIntersectionSolid(const std::vector<G4HalfSurface*>& intersectionSurfaces,
                                                  const std::vector<G4HalfSurface*>& subtractionSurfaces,
                                                  const G4String& name)
-                                                     :  G4VSolid(name),
+                                                     :  G4HalfSolid(name),
                                                         intersectionSurfaces_(intersectionSurfaces),
                                                         subtractionSurfaces_(subtractionSurfaces)
 
@@ -79,13 +79,13 @@ void G4HalfIntersectionSolid::GetRayIntersections(const G4ThreeVector& p, const 
     for (const G4HalfSurface* s : intersectionSurfaces_)
     {
         std::vector<RayHit> intersectionHits = getHits(s, false);
-        hits.insert(hits.begin(), intersectionHits.begin(), intersectionHits.end());
+        hits.insert(hits.end(), intersectionHits.begin(), intersectionHits.end());
     }
 
    for (const G4HalfSurface* s : subtractionSurfaces_)
    {
         std::vector<RayHit> subtractionHits = getHits(s, true);
-        hits.insert(hits.begin(), subtractionHits.begin(), subtractionHits.end());
+        hits.insert(hits.end(), subtractionHits.begin(), subtractionHits.end());
    }
     std::sort(hits.begin(), hits.end(),
         [](const RayHit& a, const RayHit& b)
@@ -335,15 +335,6 @@ G4ThreeVector G4HalfIntersectionSolid::SurfaceNormal(const G4ThreeVector& p) con
     return normal;
 }
 
-EInside G4HalfIntersectionSolid::Inside(const G4ThreeVector& p) const
-{
-    G4double implicitFunction = this->ImplicitFunction(p);
-
-    return (implicitFunction > kCarTolerance) ? kOutside
-          :(implicitFunction < -kCarTolerance) ? kInside
-          : kSurface;
-}
-
 G4GeometryType G4HalfIntersectionSolid::GetEntityType() const
 {
     return "G4HalfIntersectionSolid";
@@ -355,7 +346,7 @@ void G4HalfIntersectionSolid::DescribeYourselfTo(G4VGraphicsScene& scene) const
     scene.AddSolid(*this);
 }
 
-G4bool G4HalfIntersectionSolid::CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform, G4double& pMin, G4double& pMax) const
+/*G4bool G4HalfIntersectionSolid::CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform, G4double& pMin, G4double& pMax) const
 {
     for (G4HalfSurface* s : intersectionSurfaces_) s->Transform(pTransform);
     for (G4HalfSurface* s : subtractionSurfaces_) s->Transform(pTransform);
@@ -441,7 +432,7 @@ G4bool G4HalfIntersectionSolid::CalculateExtent(const EAxis pAxis, const G4Voxel
     }
 
     return true;
-}
+}*/
 
 std::ostream& G4HalfIntersectionSolid::StreamInfo(std::ostream& os) const
 {
