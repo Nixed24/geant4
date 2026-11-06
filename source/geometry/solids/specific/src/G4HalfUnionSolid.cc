@@ -142,3 +142,5 @@ G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool cal
 
     return distanceToIn;
 }
+
+

@@ -39,6 +39,8 @@ public:
     // Can be implemented in the base class if the derived classes have a defined GetRayIntersection
     G4double DistanceToIn(const G4ThreeVector&, const G4ThreeVector&) const override;
     G4double DistanceToOut(const G4ThreeVector&, const G4ThreeVector&, const G4bool, G4bool*, G4ThreeVector*) const override;
+
+    G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const override;
 };
 
 #endif //GEANT4_G4HALFSOLID_HH

@@ -37,8 +37,6 @@ public:
 
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
 
-    G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const override;
-
     G4double DistanceToIn(const G4ThreeVector& p) const override;
     G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const override;
 

@@ -38,9 +38,6 @@ public:
 
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const override;
 
-    G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const override;
-
-
     /*
      * Calculates shortest distance to the inside of the solid.
      */

@@ -68,3 +68,19 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
 
     return kInfinity;
 }
+
+G4ThreeVector G4HalfSolid::SurfaceNormal(const G4ThreeVector& p) const
+{
+    /*
+     * Returns surface normal closest to a point
+     */
+
+    G4ThreeVector normal;
+    if (this->Inside(p) == kInside) this->DistanceToOut(p, true, &normal);
+
+    if (this->Inside(p) == kOutside) this->DistanceToIn(p, true, &normal);
+
+    GetOnSurfaceNormal(p, normal);
+
+    return normal;
+}

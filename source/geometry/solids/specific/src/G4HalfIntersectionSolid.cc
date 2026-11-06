@@ -235,22 +235,6 @@ void G4HalfIntersectionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4Three
     }
 }
 
-G4ThreeVector G4HalfIntersectionSolid::SurfaceNormal(const G4ThreeVector& p) const
-{
-    /*
-     * Returns surface normal closest to a point
-     */
-
-    G4ThreeVector normal;
-    if (this->Inside(p) == kInside) this->DistanceToOut(p, true, &normal);
-
-    if (this->Inside(p) == kOutside) this->DistanceToIn(p, true, &normal);
-
-    GetOnSurfaceNormal(p, normal);
-
-    return normal;
-}
-
 G4GeometryType G4HalfIntersectionSolid::GetEntityType() const
 {
     return "G4HalfIntersectionSolid";
