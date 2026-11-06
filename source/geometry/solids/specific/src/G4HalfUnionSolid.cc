@@ -132,7 +132,6 @@ G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool cal
         if (distance < distanceToInS)
         {
             distanceToInS = distance;
-            candidateNormal *= -1;
             if (calcNorm && n != nullptr) normS = -candidateNormal;
         }
     }
@@ -143,4 +142,68 @@ G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool cal
     return distanceToIn;
 }
 
+G4double G4HalfUnionSolid::DistanceToOut(const G4ThreeVector& p) const
+{
+    if (this->Inside(p) != kInside) return 0;
 
+    G4double distanceToOutI = kInfinity;
+    G4double distanceToOutS = kInfinity;
+
+    for (const G4HalfSolid* solid : intersectionSolids_)
+    {
+        distanceToOutI = std::min(distanceToOutI, solid->DistanceToOut(p));
+    }
+    for (const G4HalfSolid* solid : subtractionSolids_)
+    {
+        distanceToOutS = std::min(distanceToOutS, solid->DistanceToOut(p));
+    }
+
+    return std::max(distanceToOutI, -distanceToOutS);
+}
+
+G4double G4HalfUnionSolid::DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
+{
+    if (this->Inside(p) == kInside) return 0;
+    if (this->Inside(p) == kSurface)
+    {
+        GetOnSurfaceNormal(p, *n);
+        return 0;
+    }
+
+    G4double distanceToOutI = kInfinity;
+    G4double distanceToOutS = kInfinity;
+
+    G4ThreeVector normI;
+    G4ThreeVector normS;
+
+    G4ThreeVector candidateNormal;
+
+    for (const G4HalfSolid* solid : intersectionSolids_)
+    {
+        G4double distance = solid->DistanceToOut(p, calcNorm,
+            (calcNorm && n != nullptr) ? &candidateNormal : nullptr);
+
+        if (distance < distanceToOutI)
+        {
+            distanceToOutI = distance;
+            if (calcNorm && n != nullptr) normI = candidateNormal;
+        }
+    }
+
+    for (const G4HalfSolid* solid : subtractionSolids_)
+    {
+        G4double distance = solid->DistanceToOut(p, calcNorm,
+             (calcNorm && n != nullptr) ? &candidateNormal : nullptr);
+
+        if (distance < distanceToOutS)
+        {
+            distanceToOutS = distance;
+            if (calcNorm && n != nullptr) normS = -candidateNormal;
+        }
+    }
+
+    G4double distanceToOut = (distanceToOutI > distanceToOutS) ? distanceToOutI : distanceToOutS;
+    n = (distanceToOutI > distanceToOutS) ? &normI : &normS;
+
+    return distanceToOut;
+}

@@ -12,6 +12,9 @@ class G4HalfUnionSolid : public G4HalfSolid
     std::vector<G4HalfSolid*> subtractionSolids_;
 
 public:
+    using G4HalfSolid::DistanceToIn;
+    using G4HalfSolid::DistanceToOut;
+
     G4HalfUnionSolid(const std::vector<G4HalfSolid*>& intersectionSolids,
                             const std::vector<G4HalfSolid*>& subtractionSolids,
                             const G4String& name = "G4HalfIntersectionSolid");
@@ -49,8 +52,9 @@ public:
      */
     G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const override;
 
-
     G4double DistanceToOut(const G4ThreeVector& p) const override;
+    G4double DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const override;
+
 
     G4GeometryType GetEntityType() const override;
     void DescribeYourselfTo(G4VGraphicsScene& scene) const override;
