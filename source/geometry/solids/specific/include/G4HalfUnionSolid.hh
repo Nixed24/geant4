@@ -61,4 +61,4 @@ public:
     std::ostream& StreamInfo(std::ostream& os) const override;
 };
 
-#endif //GEANT4_G4HALFUNIONSOLID_H
+#endif

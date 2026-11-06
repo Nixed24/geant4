@@ -1,5 +1,7 @@
 #include "G4HalfUnionSolid.hh"
 
+#include "G4VGraphicsScene.hh"
+
 G4HalfUnionSolid::G4HalfUnionSolid(const std::vector<G4HalfSolid*>& intersectionSolids,
                                    const std::vector<G4HalfSolid*>& subtractionSolids,
                                    const G4String& name)
@@ -58,8 +60,6 @@ void G4HalfUnionSolid::GetRayIntersections(const G4ThreeVector& p, const G4Three
 
 void G4HalfUnionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const
 {
-    G4bool onSurface = this->Inside(p) == kSurface;
-
     for (const G4HalfSolid* solid : intersectionSolids_)
     {
         if (solid->Inside(p) == kSurface && this->Inside(p) == kSurface)
@@ -206,4 +206,21 @@ G4double G4HalfUnionSolid::DistanceToOut(const G4ThreeVector& p, const G4bool ca
     n = (distanceToOutI > distanceToOutS) ? &normI : &normS;
 
     return distanceToOut;
+}
+
+G4GeometryType G4HalfUnionSolid::GetEntityType() const
+{
+    return "G4HalfUnionSolid";
+}
+
+void G4HalfUnionSolid::DescribeYourselfTo(G4VGraphicsScene& scene) const
+{
+    scene.AddSolid(*this);
+}
+
+std::ostream& G4HalfUnionSolid::StreamInfo(std::ostream& os) const
+{
+    os << "--- Half Union Solid: " << GetName() << " ---" << std::endl;
+
+    return os;
 }
