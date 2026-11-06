@@ -56,6 +56,8 @@ G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector& p) const
 void G4HalfIntersectionSolid::GetRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
     std::vector<RayHit>& hits) const
 {
+    if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
+
     G4ThreeVector vUnit = v.unit();
 
     auto getHits = [&p, &vUnit](const G4HalfSurface* s, const G4bool subtraction)
@@ -162,6 +164,8 @@ G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, G4ThreeV
 G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
     const G4bool calcNorm, G4bool* validNorm, G4ThreeVector* n) const
 {
+
+    if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
     if (validNorm != nullptr) *validNorm = false;
 
     if (this->Inside(p) == kOutside) return 0;
@@ -290,6 +294,7 @@ G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, G4ThreeVe
 G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
     if (this->Inside(p) != kOutside) return 0;
+    if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
 
     G4ThreeVector vUnit = v.unit();
 
