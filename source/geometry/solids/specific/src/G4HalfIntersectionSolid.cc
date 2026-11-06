@@ -337,10 +337,11 @@ G4ThreeVector G4HalfIntersectionSolid::SurfaceNormal(const G4ThreeVector& p) con
 
 EInside G4HalfIntersectionSolid::Inside(const G4ThreeVector& p) const
 {
-    EInside inside = (this->ImplicitFunction(p) > kCarTolerance) ? kOutside
-                    :(this->ImplicitFunction(p) < -kCarTolerance) ? kInside
-                    : kSurface;
-    return inside;
+    G4double implicitFunction = this->ImplicitFunction(p);
+
+    return (implicitFunction > kCarTolerance) ? kOutside
+          :(implicitFunction < -kCarTolerance) ? kInside
+          : kSurface;
 }
 
 G4GeometryType G4HalfIntersectionSolid::GetEntityType() const
