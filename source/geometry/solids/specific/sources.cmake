@@ -37,6 +37,7 @@ geant4_add_module(G4specsolids
     G4Polyhedra.icc
     G4PolyhedraHistorical.hh
     G4PolyhedraSide.hh
+        G4PolynomialSolve.hh
     G4QuadrangularFacet.hh
     G4QuadrangularFacet.icc
     G4ReduciblePolygon.hh
@@ -107,6 +108,7 @@ geant4_add_module(G4specsolids
     G4Polyhedra.cc
     G4PolyhedraHistorical.cc
     G4PolyhedraSide.cc
+        G4PolynomialSolve.cc
     G4QuadrangularFacet.cc
     G4ReduciblePolygon.cc
     G4SolidExtentList.cc
