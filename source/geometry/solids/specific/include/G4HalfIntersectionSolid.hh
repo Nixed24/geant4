@@ -22,18 +22,11 @@ public:
     void AddIntersectionSurface(G4HalfSurface& s);
     void AddSubtractionSurface(G4HalfSurface& s);
 
-    void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
-        std::vector<RayHit>&) const override;
-
     G4double ImplicitFunction(const G4ThreeVector &p) const override;
 
-    // Provides a new implicit function for a subtraction with a solid
-    G4double Subtraction(const G4ThreeVector& p, const G4HalfIntersectionSolid& subtraction) const;
-
-
     // --- Inherited functions ---
-    G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
-                           G4double& pMin, G4double& pMax) const override = 0;
+    void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
+        std::vector<RayHit>&) const override;
 
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
 
@@ -44,6 +37,8 @@ public:
     G4double DistanceToOut(const G4ThreeVector& p) const override;
 
     G4GeometryType GetEntityType() const override;
+    G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
+                          G4double& pMin, G4double& pMax) const override = 0;
     void DescribeYourselfTo(G4VGraphicsScene& scene) const override;
     std::ostream& StreamInfo(std::ostream& os) const override;
 };

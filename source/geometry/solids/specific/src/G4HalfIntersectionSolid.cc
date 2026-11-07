@@ -17,24 +17,18 @@ G4HalfIntersectionSolid::G4HalfIntersectionSolid(const std::vector<G4HalfSurface
 {
 }
 
+
 void G4HalfIntersectionSolid::AddIntersectionSurface(G4HalfSurface& s)
 {
     intersectionSurfaces_.push_back(&s);
 }
+
 
 void G4HalfIntersectionSolid::AddSubtractionSurface(G4HalfSurface& s)
 {
     subtractionSurfaces_.push_back(&s);
 }
 
-G4double G4HalfIntersectionSolid::Subtraction(const G4ThreeVector& p, const G4HalfIntersectionSolid& subtraction) const
-{
-    G4double implicitFunction = this->ImplicitFunction(p);
-
-    implicitFunction = std::max(implicitFunction, -subtraction.ImplicitFunction(p));
-
-    return implicitFunction;
-}
 
 G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector& p) const
 {
@@ -52,6 +46,7 @@ G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector& p) const
 
     return implicitFunction;
 }
+
 
 void G4HalfIntersectionSolid::GetRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
     std::vector<RayHit>& hits) const
@@ -97,10 +92,56 @@ void G4HalfIntersectionSolid::GetRayIntersections(const G4ThreeVector& p, const 
         });
 }
 
-G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p) const
+
+G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
-    return DistanceToOut(p, false, nullptr);
+    if (this->Inside(p) == kInside) return 0;
+    if (this->Inside(p) == kSurface)
+    {
+        GetOnSurfaceNormal(p, *n);
+        return 0;
+    }
+
+    G4double distanceToIn = -kInfinity;
+    const G4HalfSurface* candidateSurface;
+    G4int normSign;
+
+    auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
+    {
+        G4double candidateDistance = surface->DistanceToSurface(p);
+        if (candidateDistance > distanceToIn)
+        {
+            distanceToIn = candidateDistance;
+            candidateSurface = surface;
+            normSign = sign;
+        }
+    };
+
+    for (const G4HalfSurface* surface : intersectionSurfaces_)
+    {
+        setDistance(surface, +1);
+    }
+
+    for (const G4HalfSurface* surface : subtractionSurfaces_)
+    {
+        setDistance(surface, -1);
+    }
+
+    if (calcNorm &&  n != nullptr)
+    {
+        G4ThreeVector surfacePoint = candidateSurface->ClosestSurfacePoint(p);
+        *n = normSign*candidateSurface->SurfaceNormal(surfacePoint);
+    }
+
+    return distanceToIn;
 }
+
+
+G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p) const
+{
+    return DistanceToIn(p, false, nullptr);
+}
+
 
 G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
@@ -145,64 +186,10 @@ G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4
     return std::abs(distanceToOut);
 }
 
-G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p) const
+
+G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p) const
 {
-    if (this -> Inside(p) != kOutside) return 0;
-
-    G4double distanceToIn = -kInfinity;
-
-    for (const G4HalfSurface* surface : intersectionSurfaces_)
-    {
-        distanceToIn = std::max(distanceToIn, surface->DistanceToSurface(p));
-    }
-
-    for (const G4HalfSurface* surface : subtractionSurfaces_)
-    {
-        distanceToIn = std::max(distanceToIn, -surface->DistanceToSurface(p));
-    }
-
-    return distanceToIn;
-}
-
-G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
-{
-    if (this->Inside(p) == kInside) return 0;
-    if (this->Inside(p) == kSurface)
-    {
-        GetOnSurfaceNormal(p, *n);
-        return 0;
-    }
-
-    G4double distanceToIn = -kInfinity;
-    for (const G4HalfSurface* surface : intersectionSurfaces_)
-    {
-        G4double distanceToSurface = surface->DistanceToSurface(p);
-        if (distanceToSurface > distanceToIn)
-        {
-            distanceToIn = distanceToSurface;
-            if (calcNorm && n != nullptr)
-            {
-                G4ThreeVector closestSurfacePoint = surface->closestSurfacePoint(p);
-                *n = surface->SurfaceNormal(closestSurfacePoint);
-            }
-        }
-    }
-
-    for (const G4HalfSurface* surface : subtractionSurfaces_)
-    {
-        G4double distanceToSurface = -surface->DistanceToSurface(p);
-        if (distanceToSurface > distanceToIn)
-        {
-            distanceToIn = distanceToSurface;
-            if (calcNorm && n != nullptr)
-            {
-                G4ThreeVector closestSurfacePoint = surface->closestSurfacePoint(p);
-                *n = -surface->SurfaceNormal(closestSurfacePoint);
-            }
-        }
-    }
-
-    return distanceToIn;
+    return DistanceToOut(p, false, nullptr);
 }
 
 
@@ -214,14 +201,14 @@ void G4HalfIntersectionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4Three
     {
         if (s->Inside(p) == kSurface && this->Inside(p) == kSurface)
         {
-            norm = (onSurface) ? s->SurfaceNormal(p) : s->SurfaceNormal(s->closestSurfacePoint(p));
+            norm = (onSurface) ? s->SurfaceNormal(p) : s->SurfaceNormal(s->ClosestSurfacePoint(p));
         }
     }
     for (const G4HalfSurface* s : subtractionSurfaces_)
     {
         if (s->Inside(p) == kSurface && this->Inside(p) == kSurface)
         {
-            norm = (onSurface) ? -s->SurfaceNormal(p) : -s->SurfaceNormal(s->closestSurfacePoint(p));
+            norm = (onSurface) ? -s->SurfaceNormal(p) : -s->SurfaceNormal(s->ClosestSurfacePoint(p));
         }
     }
 }
