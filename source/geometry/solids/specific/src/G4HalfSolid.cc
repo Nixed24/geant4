@@ -1,5 +1,22 @@
 #include "G4HalfSolid.hh"
 
+G4double G4HalfSolid::Intersection(const G4ThreeVector& p, const G4HalfSolid& solid) const
+{
+    return std::max(this->ImplicitFunction(p), solid.ImplicitFunction(p));
+}
+
+
+G4double G4HalfSolid::Union(const G4ThreeVector& p, const G4HalfSolid& solid) const
+{
+    return std::min(this->ImplicitFunction(p), solid.ImplicitFunction(p));
+}
+
+
+G4double G4HalfSolid::Subtraction(const G4ThreeVector& p, const G4HalfSolid& solid) const
+{
+    return std::max(this->ImplicitFunction(p), -solid.ImplicitFunction(p));
+}
+
 EInside G4HalfSolid::Inside(const G4ThreeVector& p) const
 {
     G4double implicitFunction = this->ImplicitFunction(p);

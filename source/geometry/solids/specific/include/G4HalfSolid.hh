@@ -18,10 +18,15 @@ protected:
 public:
     G4HalfSolid(const G4String& name) : G4VSolid(name) {};
 
+    virtual G4double ImplicitFunction(const G4ThreeVector&) const = 0;
+
+    // Provides boolean operations on other half solids.
+    G4double Intersection(const G4ThreeVector&, const G4HalfSolid&) const;
+    G4double Union(const G4ThreeVector&, const G4HalfSolid&) const;
+    G4double Subtraction(const G4ThreeVector&, const G4HalfSolid&) const;
+
     // Populates a vector of RayHit structs with data about where the ray intersected
     virtual void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const = 0;
-
-    virtual G4double ImplicitFunction(const G4ThreeVector&) const = 0;
 
     EInside Inside(const G4ThreeVector&) const override;
 
@@ -39,6 +44,8 @@ public:
     G4double DistanceToOut(const G4ThreeVector&, const G4ThreeVector&, const G4bool, G4bool*, G4ThreeVector*) const override;
 
     G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const override;
+
+    virtual void Transform(const G4AffineTransform& t) const = 0;
 };
 
 #endif //GEANT4_G4HALFSOLID_HH
