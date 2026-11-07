@@ -4,15 +4,12 @@ G4HalfPlane::G4HalfPlane(const G4ThreeVector& normalIn, const G4double& distance
             :normal(normalIn.unit()),
              distance(distanceIn) {}
 
+
 G4double G4HalfPlane::ImplicitFunction(const G4ThreeVector& p) const
 {
     return normal.dot(p) - distance;
 }
 
-G4ThreeVector G4HalfPlane::closestSurfacePoint(const G4ThreeVector& p) const
-{
-    return this->RayIntersection(p, this->normal)[0];
-}
 
 std::vector<G4ThreeVector> G4HalfPlane::RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
@@ -26,12 +23,14 @@ std::vector<G4ThreeVector> G4HalfPlane::RayIntersection(const G4ThreeVector& p, 
     return {vUnit*distanceToSurface + p};
 }
 
+
 // Returns the signed distance to surface
 G4double G4HalfPlane::DistanceToSurface(const G4ThreeVector& p) const
 {
     // For a plane, the implicit function is the same as the signed distance
     return this->ImplicitFunction(p);
 }
+
 
 G4double G4HalfPlane::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
@@ -49,6 +48,13 @@ G4double G4HalfPlane::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVec
 
     return -implicitFunction/projection;
 }
+
+
+G4ThreeVector G4HalfPlane::ClosestSurfacePoint(const G4ThreeVector& p) const
+{
+    return this->RayIntersection(p, this->normal)[0];
+}
+
 
 void G4HalfPlane::Transform(const G4AffineTransform& t)
 {

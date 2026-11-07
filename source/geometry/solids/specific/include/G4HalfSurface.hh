@@ -28,7 +28,7 @@ public:
     virtual G4double DistanceToSurface(const G4ThreeVector&p) const = 0;
 
     // This will involve taking a gradient of the implicit function and evaluating it at p
-    virtual G4ThreeVector closestSurfacePoint(const G4ThreeVector& p) const = 0;
+    virtual G4ThreeVector ClosestSurfacePoint(const G4ThreeVector& p) const = 0;
     virtual G4ThreeVector SurfaceNormal(const G4ThreeVector& /*p*/) const = 0;
 
     virtual void Transform(const G4AffineTransform& t) = 0;
