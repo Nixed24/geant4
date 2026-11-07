@@ -52,7 +52,7 @@ G4double G4HalfPlane::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVec
 
 G4ThreeVector G4HalfPlane::ClosestSurfacePoint(const G4ThreeVector& p) const
 {
-    return this->RayIntersection(p, this->normal)[0];
+    return this->RayIntersection(p, -this->normal)[0];
 }
 
 
