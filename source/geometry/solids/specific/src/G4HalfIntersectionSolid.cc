@@ -109,7 +109,7 @@ G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4b
     auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
     {
         G4double candidateDistance = surface->DistanceToSurface(p);
-        if (candidateDistance > distanceToIn)
+        if (sign*candidateDistance > distanceToIn)
         {
             distanceToIn = candidateDistance;
             candidateSurface = surface;
@@ -159,7 +159,7 @@ G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4
     auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
     {
         G4double candidateDistance = surface->DistanceToSurface(p);
-        if (candidateDistance > distanceToOut)
+        if (sign*candidateDistance > distanceToOut)
         {
             distanceToOut = candidateDistance;
             candidateSurface = surface;
