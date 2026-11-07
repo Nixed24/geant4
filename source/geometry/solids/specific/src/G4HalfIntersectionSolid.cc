@@ -213,6 +213,15 @@ void G4HalfIntersectionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4Three
     }
 }
 
+
+void G4HalfIntersectionSolid::Transform(const G4AffineTransform& t) const
+{
+    for (G4HalfSurface* s : intersectionSurfaces_) s->Transform(t);
+
+    for (G4HalfSurface* s : subtractionSurfaces_) s->Transform(t);
+}
+
+
 G4GeometryType G4HalfIntersectionSolid::GetEntityType() const
 {
     return "G4HalfIntersectionSolid";

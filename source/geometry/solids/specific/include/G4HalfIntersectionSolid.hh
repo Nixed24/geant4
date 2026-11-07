@@ -36,6 +36,8 @@ public:
     G4double DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const override;
     G4double DistanceToOut(const G4ThreeVector& p) const override;
 
+    void Transform(const G4AffineTransform& t) const override;
+
     G4GeometryType GetEntityType() const override;
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
                           G4double& pMin, G4double& pMax) const override = 0;
