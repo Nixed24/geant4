@@ -56,11 +56,11 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
     if (this->Inside(p) == kOutside) return 0;
     if (this->Inside(p) == kSurface)
     {
-        GetOnSurfaceNormal(p, *n);
+        if (calcNorm && n != nullptr) this->GetOnSurfaceNormal(p, *n);
         return 0;
     }
 
-    G4ThreeVector vUnit = v.unit();
+    const G4ThreeVector vUnit = v.unit();
 
     std::vector<RayHit> rayHits;
 
@@ -68,7 +68,7 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
 
     for (const RayHit& hit : rayHits)
     {
-        G4ThreeVector insideTestVector = hit.intersection + 2*kCarTolerance*vUnit;
+        const G4ThreeVector insideTestVector = hit.intersection + 2*kCarTolerance*vUnit;
 
         if (this->Inside(insideTestVector) == kOutside)
         {
