@@ -99,56 +99,47 @@ void G4HalfIntersectionSolid::GetRayIntersections(const G4ThreeVector& p, const 
 
 G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p) const
 {
-    if (this->Inside(p) != kInside) return 0;
-
-    G4double distanceToOut = -kInfinity;
-
-    for (const G4HalfSurface* s : intersectionSurfaces_)
-    {
-        distanceToOut = std::max(distanceToOut, s->DistanceToSurface(p));
-    }
-    for (const G4HalfSurface* s : subtractionSurfaces_)
-    {
-        distanceToOut = std::max(distanceToOut, -s->DistanceToSurface(p));
-    }
-
-    return std::abs(distanceToOut);
+    return DistanceToOut(p, false, nullptr);
 }
+
 G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
     if (this->Inside(p) == kOutside) return 0;
     if (this->Inside(p) == kSurface)
     {
-        GetOnSurfaceNormal(p, *n);
+        if (calcNorm && n != nullptr) GetOnSurfaceNormal(p, *n);
         return 0;
     }
 
     G4double distanceToOut = -kInfinity;
+    const G4HalfSurface* candidateSurface;
+    G4int normSign;
+
+    auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
+    {
+        G4double candidateDistance = surface->DistanceToSurface(p);
+        if (candidateDistance > distanceToOut)
+        {
+            distanceToOut = candidateDistance;
+            candidateSurface = surface;
+            normSign = sign;
+        }
+    };
 
     for (const G4HalfSurface* surface : intersectionSurfaces_)
     {
-       if (surface->DistanceToSurface(p) > distanceToOut)
-       {
-           distanceToOut = surface->DistanceToSurface(p);
-           if (calcNorm && n != nullptr)
-           {
-               G4ThreeVector closestSurfacePoint = surface->closestSurfacePoint(p);
-               *n = surface->SurfaceNormal(closestSurfacePoint);
-           }
-       }
+        setDistance(surface, +1);
     }
 
     for (const G4HalfSurface* surface : subtractionSurfaces_)
     {
-        if (-surface->DistanceToSurface(p) > distanceToOut)
-        {
-            distanceToOut = -surface->DistanceToSurface(p);
-            if (calcNorm && n != nullptr)
-            {
-                G4ThreeVector closestSurfacePoint = surface->closestSurfacePoint(p);
-                *n = -surface->SurfaceNormal(closestSurfacePoint);
-            }
-        }
+        setDistance(surface, -1);
+    }
+
+    if (calcNorm &&  n != nullptr)
+    {
+        G4ThreeVector surfacePoint = candidateSurface->ClosestSurfacePoint(p);
+        *n = normSign*candidateSurface->SurfaceNormal(surfacePoint);
     }
 
     return std::abs(distanceToOut);
