@@ -339,12 +339,35 @@ pow(a,2)*pow(e,2)*i*pow(r_z,2)-2*a*pow(b,2)*e*i*pow(r_z,2)+pow(b,4)*i*pow(r_z,2)
     // Will run into div by zero here if determinant is equal to zero
     G4double cur_lambda = lambdas[i_loop];
 
-    G4double x_component = ((pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e))*(r_z+cur_lambda*P_z))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))+((cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)*(r_y+cur_lambda*P_y))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
-    +(((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))*(r_x+cur_lambda*P_x))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)));
-    G4double y_component = ((cur_lambda*(1-cur_lambda*a)*f+pow(cur_lambda,2)*b*c)*(r_z+cur_lambda*P_z))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))+(((1-cur_lambda*a)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(c,2))*(r_y+cur_lambda*P_y))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
-    +((cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)*(r_x+cur_lambda*P_x))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)));
-    G4double z_component = (((1-cur_lambda*a)*(1-cur_lambda*e)-pow(cur_lambda,2)*pow(b,2))*(r_z+cur_lambda*P_z))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))+((cur_lambda*(1-cur_lambda*a)*f+pow(cur_lambda,2)*b*c)*(r_y+cur_lambda*P_y))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
-    +((pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e))*(r_x+cur_lambda*P_x))/((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))-cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)));
+    G4double x_component =
+    ((pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e))*(r_z+cur_lambda*b_z))
+                /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                 -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
+                +((cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)*(r_y+cur_lambda*b_y))
+                 /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                  -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
+                +(((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))*(r_x+cur_lambda*b_x))
+                 /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                  -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)));
+    G4double y_component =
+    ((cur_lambda*(1-cur_lambda*a)*f+pow(cur_lambda,2)*b*c)*(r_z+cur_lambda*b_z))
+                  /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                   -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
+                  +(((1-cur_lambda*a)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(c,2))*(r_y+cur_lambda*b_y))
+                   /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                    -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
+                  +((cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)*(r_x+cur_lambda*b_x))
+                   /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                    -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)));
+    G4double z_component = (((1-cur_lambda*a)*(1-cur_lambda*e)-pow(cur_lambda,2)*pow(b,2))*(r_z+cur_lambda*b_z))
+                /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                 -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
+                +((cur_lambda*(1-cur_lambda*a)*f+pow(cur_lambda,2)*b*c)*(r_y+cur_lambda*b_y))
+                 /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                  -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)))
+                +((pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e))*(r_x+cur_lambda*b_x))
+                 /((1-cur_lambda*a)*((1-cur_lambda*e)*(1-cur_lambda*i)-pow(cur_lambda,2)*pow(f,2))
+                  -cur_lambda*b*(cur_lambda*b*(1-cur_lambda*i)+pow(cur_lambda,2)*c*f)-cur_lambda*c*(pow(cur_lambda,2)*b*f+cur_lambda*c*(1-cur_lambda*e)));
 
     candidate_point.set(x_component, y_component, z_component);
     candidate_points.push_back(candidate_point);
