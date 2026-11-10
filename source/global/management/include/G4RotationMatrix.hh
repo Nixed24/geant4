@@ -37,5 +37,4 @@
 
 using G4RotationMatrix = CLHEP::HepRotation;
 using G4Rep3x3 = CLHEP::HepRep3x3;
-
 #endif

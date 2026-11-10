@@ -24,6 +24,7 @@ geant4_add_module(G4specsolids
     G4GenericPolycone.icc
     G4GenericTrap.hh
     G4GenericTrap.icc
+        G4HalfQuadric.hh
     G4Hype.hh
     G4Hype.icc
     G4IntersectingCone.hh
@@ -39,6 +40,7 @@ geant4_add_module(G4specsolids
     G4Polyhedra.icc
     G4PolyhedraHistorical.hh
     G4PolyhedraSide.hh
+        G4PolynomialSolve.hh
     G4QuadrangularFacet.hh
     G4QuadrangularFacet.icc
     G4ReduciblePolygon.hh
@@ -100,6 +102,7 @@ geant4_add_module(G4specsolids
     G4ExtrudedSolid.cc
     G4GenericPolycone.cc
     G4GenericTrap.cc
+        G4HalfQuadric.cc
     G4Hype.cc
     G4IntersectingCone.cc
     G4Paraboloid.cc
@@ -110,6 +113,7 @@ geant4_add_module(G4specsolids
     G4Polyhedra.cc
     G4PolyhedraHistorical.cc
     G4PolyhedraSide.cc
+        G4PolynomialSolve.cc
     G4QuadrangularFacet.cc
     G4ReduciblePolygon.cc
     G4SolidExtentList.cc
