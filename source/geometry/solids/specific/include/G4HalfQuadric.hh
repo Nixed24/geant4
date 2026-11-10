@@ -9,6 +9,10 @@
 #include "G4RotationMatrix.hh"
 class G4HalfQuadric : public G4HalfSurface {
   private:
+
+    static G4RotationMatrix _T(const G4RotationMatrix & M);
+    std::vector<G4ThreeVector> GetLMContourIntersections(const G4ThreeVector& p) const;
+
     G4RotationMatrix Q;
     G4ThreeVector P;
     G4double R;
@@ -25,6 +29,9 @@ class G4HalfQuadric : public G4HalfSurface {
 
     // This will involve taking a gradient of the implicit function and evaluating it at p
     G4ThreeVector SurfaceNormal(const G4ThreeVector& p) const override;
+    G4ThreeVector ClosestSurfacePoint(const G4ThreeVector& p) const override;
+
+    void Transform(const G4AffineTransform& t) override;
 
     std::ostream& StreamInfo(std::ostream&) const override;
 };
