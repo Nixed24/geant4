@@ -25,7 +25,7 @@ public:
     G4double ImplicitFunction(const G4ThreeVector &p) const override;
 
     // --- Inherited functions ---
-    void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
+    void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
         std::vector<RayHit>&) const override;
 
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
@@ -40,7 +40,7 @@ public:
 
     G4GeometryType GetEntityType() const override;
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
-                          G4double& pMin, G4double& pMax) const override = 0;
+                          G4double& pMin, G4double& pMax) const override{ return false;}
     void DescribeYourselfTo(G4VGraphicsScene& scene) const override;
     std::ostream& StreamInfo(std::ostream& os) const override;
 };

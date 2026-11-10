@@ -33,11 +33,11 @@ public:
      * Leaving this virtual for now until stewart gives me his renderer
      */
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
-                           G4double& pMin, G4double& pMax) const override = 0;
+                           G4double& pMin, G4double& pMax) const override {return false;}
 
     G4double ImplicitFunction(const G4ThreeVector &p) const override;
 
-    void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const override;
+    void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const override;
 
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const override;
 

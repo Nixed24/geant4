@@ -42,14 +42,14 @@ G4double G4HalfUnionSolid::ImplicitFunction(const G4ThreeVector& p) const
     return implicitFunction;
 }
 
-void G4HalfUnionSolid::GetRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v, std::vector<RayHit>& hits) const
+void G4HalfUnionSolid::GetPotentialRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v, std::vector<RayHit>& hits) const
 {
     if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude unit vector");
     G4ThreeVector vUnit = v.unit();
 
-    for (const G4HalfSolid* solid : intersectionSolids_) solid->GetRayIntersections(p, vUnit, hits);
+    for (const G4HalfSolid* solid : intersectionSolids_) solid->GetPotentialRayIntersections(p, vUnit, hits);
 
-    for (const G4HalfSolid* s : subtractionSolids_) s->GetRayIntersections(p, vUnit, hits);
+    for (const G4HalfSolid* s : subtractionSolids_) s->GetPotentialRayIntersections(p, vUnit, hits);
 
     std::sort(hits.begin(), hits.end(),
             [](const RayHit& a, const RayHit& b)

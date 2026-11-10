@@ -26,6 +26,27 @@ EInside G4HalfSolid::Inside(const G4ThreeVector& p) const
           : kSurface;
 }
 
+void G4HalfSolid::GetSolidRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
+    std::vector<RayHit>& rayHits, G4bool modifyRayHits) const
+{
+    auto isNotOnSurface = [&](const RayHit& hit) -> G4bool
+    {
+        return this->Inside(hit.intersection) != kSurface;
+    };
+
+    if (rayHits.empty() && !modifyRayHits)
+    {
+        this->GetPotentialRayIntersections(p, v, rayHits);
+    }
+
+    if (rayHits.empty() && modifyRayHits)
+    {
+        throw std::logic_error("G4HalfSolid::GetSolidRayIntersections: rayHits are empty, but modifyRayHits was set to true.");
+    }
+
+    rayHits.erase(std::remove_if(rayHits.begin(), rayHits.end(), isNotOnSurface),rayHits.end());
+}
+
 G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
     if (this->Inside(p) != kOutside) return 0;
@@ -35,16 +56,11 @@ G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& 
 
     std::vector<RayHit> rayHits;
 
-    GetRayIntersections(p, vUnit, rayHits);
+    GetSolidRayIntersections(p, vUnit, rayHits, false);
 
-    for (const RayHit& hit : rayHits)
-    {
-        G4ThreeVector insideTestVector = hit.intersection + 2*kCarTolerance*vUnit;
+    if (rayHits.empty()) return kInfinity;
 
-        if (this->Inside(insideTestVector) == kInside) return hit.distance;
-    }
-
-    return kInfinity;
+    return rayHits[0].distance;
 }
 
 G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
@@ -64,13 +80,11 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
 
     std::vector<RayHit> rayHits;
 
-    GetRayIntersections(p, vUnit, rayHits);
+    GetSolidRayIntersections(p, vUnit, rayHits, false);
 
     for (const RayHit& hit : rayHits)
     {
-        const G4ThreeVector insideTestVector = hit.intersection + 2*kCarTolerance*vUnit;
-
-        if (this->Inside(insideTestVector) == kOutside)
+        if (this->Inside(hit.intersection) == kSurface)
         {
             if (calcNorm && n != nullptr)
             {

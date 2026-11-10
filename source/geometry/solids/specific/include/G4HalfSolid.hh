@@ -26,7 +26,8 @@ public:
     G4double Subtraction(const G4ThreeVector&, const G4HalfSolid&) const;
 
     // Populates a vector of RayHit structs with data about where the ray intersected
-    virtual void GetRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const = 0;
+    virtual void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const = 0;
+    virtual void GetSolidRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&, G4bool) const;
 
     EInside Inside(const G4ThreeVector&) const override;
 

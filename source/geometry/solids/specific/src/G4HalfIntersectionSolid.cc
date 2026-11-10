@@ -48,7 +48,7 @@ G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector& p) const
 }
 
 
-void G4HalfIntersectionSolid::GetRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
+void G4HalfIntersectionSolid::GetPotentialRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
     std::vector<RayHit>& hits) const
 {
     if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
@@ -92,7 +92,6 @@ void G4HalfIntersectionSolid::GetRayIntersections(const G4ThreeVector& p, const 
         });
 }
 
-
 G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
     if (this->Inside(p) == kInside) return 0;
@@ -103,7 +102,7 @@ G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4b
     }
 
     G4double distanceToIn = -kInfinity;
-    const G4HalfSurface* candidateSurface;
+    const G4HalfSurface* candidateSurface = nullptr;
     G4int normSign;
 
     auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
@@ -153,7 +152,7 @@ G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4
     }
 
     G4double distanceToOut = -kInfinity;
-    const G4HalfSurface* candidateSurface;
+    const G4HalfSurface* candidateSurface = nullptr;
     G4int normSign;
 
     auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
