@@ -69,12 +69,21 @@ std::ostream& G4HalfQuadric::StreamInfo(std::ostream& os) const
     return os;
 }
 
+G4ThreeVector G4HalfQuadric::SurfaceNormal(const G4ThreeVector& p) const
+{
+  G4double grad_x = 2 * (Q.xx() * p[0] + Q.xy() * p[1] + Q.xz() * p[2]);
+  G4double grad_y = 2 * (Q.yy() * p[0] + Q.yx() * p[1] + Q.yz() * p[2]);
+  G4double grad_z = 2 * (Q.zz() * p[0] + Q.zx() * p[1] + Q.zy() * p[2]);
+  G4ThreeVector grad {grad_x, grad_y, grad_z};
+  return grad;
+}
+
 G4double G4HalfQuadric::DistanceToSurface(const G4ThreeVector& p) const
 {
   G4PolynomialSolve polysolve;
   const G4double r_x = p.x(), r_y = p.y(), r_z = p.z();
   const G4double M_0 = this->R;
-  const G4double P_x = this->P.x() * 0.5, P_y = this->P.y() * 0.5, P_z = this->P.z() * 0.5;
+  const G4double b_x = this->P.x() * 0.5, b_y = this->P.y() * 0.5, b_z = this->P.z() * 0.5;
   const G4double a = Q.xx(), b = Q.xy(), c = Q.xz(), e = Q.yy(), f = Q.yz(), i = Q.zz();
   // Edge cases: Determinant = 0 | Determinant is a cubic polynomial in lambda, could add a check for lambda being at one of its roots
   // I don't know what the determinant being zero would actually correspond to, it's not a plane because that would just give identity
@@ -84,53 +93,235 @@ G4double G4HalfQuadric::DistanceToSurface(const G4ThreeVector& p) const
   // const G4double characteristic_determinant = (-pow(Z,3)*a*e*i)+pow(Z,2)*e*i+pow(Z,3)*pow(b,2)*i+pow(Z,2)*a*i-Z*i+pow(Z,3)*a*pow(f,2)-pow(Z,2)*pow(f,2)-2*pow(Z,3)*b*c*f+pow(Z,3)*pow(c,2)*e+pow(Z,2)*a*e-Z*e-pow(Z,2)*pow(c,2)-pow(Z,2)*pow(b,2)-Z*a+1;
   // It's a LONG expression
   // 07/11/26 these terms aren't correct; pull the correct ones from poly_redo_test_demo; that also uses b (P/2) instead of P
-  const G4double power_6 = M_0*pow(a,2)*pow(e,2)*pow(i,2)-2*M_0*a*pow(b,2)*e*pow(i,2)+M_0*pow(b,4)*pow(i,2)-2*M_0*pow(a,2)*e*pow(f,2)*i+2*M_0*a*pow(b,2)*pow(f,2)*i+4*M_0*a*b*c*e*f*i-4*M_0*pow(b,3)*c*f*i-2*M_0*a*pow(c,2)*pow(e,2)*i+2*M_0*pow(b,2)*pow(c,2)*e*i+M_0*pow(a,2)*pow(f,4)-4*M_0*a*b*c*pow(f,3)+2*M_0*a*pow(c,2)*e*pow(f,2)+4*M_0*pow(b,2)*pow(c,2)*pow(f,2)-4*M_0*b*pow(c,3)*e*f+M_0*pow(c,4)*pow(e,2);
-  const G4double power_5 = P_x*a*b*e*f*i*r_z-P_y*pow(a,2)*e*f*i*r_z-P_x*pow(b,3)*f*i*r_z+P_y*a*pow(b,2)*f*i*r_z-P_x*a*c*pow(e,2)*i*r_z+P_z*pow(a,2)*pow(e,2)*i*r_z+P_x*pow(b,2)*c*e*i*r_z+P_y*a*b*c*e*i*r_z-2*P_z*a*pow(b,2)*e*i*r_z-P_y*pow(b,3)*c*i*r_z+P_z*pow(b,4)*i*r_z-P_x*a*b*pow(f,3)*r_z+P_y*pow(a,2)*pow(f,3)*r_z+P_x*a*c*e*pow(f,2)*r_z-P_z*pow(a,2)*e*pow(f,2)*r_z+2*P_x*pow(b,2)*c*pow(f,2)*r_z-3*P_y*a*b*c*pow(f,2)*r_z
-                         +P_z*a*pow(b,2)*pow(f,2)*r_z-3*P_x*b*pow(c,2)*e*f*r_z+P_y*a*pow(c,2)*e*f*r_z+2*P_z*a*b*c*e*f*r_z+2*P_y*pow(b,2)*pow(c,2)*f*r_z-2*P_z*pow(b,3)*c*f*r_z+P_x*pow(c,3)*pow(e,2)*r_z-P_z*a*pow(c,2)*pow(e,2)*r_z-P_y*b*pow(c,3)*e*r_z+P_z*pow(b,2)*pow(c,2)*e*r_z-P_x*a*b*e*pow(i,2)*r_y+P_y*pow(a,2)*e*pow(i,2)*r_y+P_x*pow(b,3)*pow(i,2)*r_y-P_y*a*pow(b,2)*pow(i,2)*r_y+P_x*a*b*pow(f,2)*i*r_y
-                         -P_y*pow(a,2)*pow(f,2)*i*r_y+P_x*a*c*e*f*i*r_y-P_z*pow(a,2)*e*f*i*r_y-3*P_x*pow(b,2)*c*f*i*r_y+2*P_y*a*b*c*f*i*r_y+P_z*a*pow(b,2)*f*i*r_y+P_x*b*pow(c,2)*e*i*r_y-2*P_y*a*pow(c,2)*e*i*r_y+P_z*a*b*c*e*i*r_y+P_y*pow(b,2)*pow(c,2)*i*r_y-P_z*pow(b,3)*c*i*r_y-P_x*a*c*pow(f,3)*r_y+P_z*pow(a,2)*pow(f,3)*r_y+2*P_x*b*pow(c,2)*pow(f,2)*r_y+P_y*a*pow(c,2)*pow(f,2)*r_y
-                         -3*P_z*a*b*c*pow(f,2)*r_y-P_x*pow(c,3)*e*f*r_y+P_z*a*pow(c,2)*e*f*r_y-2*P_y*b*pow(c,3)*f*r_y+2*P_z*pow(b,2)*pow(c,2)*f*r_y+P_y*pow(c,4)*e*r_y-P_z*b*pow(c,3)*e*r_y+P_x*a*pow(e,2)*pow(i,2)*r_x-P_x*pow(b,2)*e*pow(i,2)*r_x-P_y*a*b*e*pow(i,2)*r_x+P_y*pow(b,3)*pow(i,2)*r_x-2*P_x*a*e*pow(f,2)*i*r_x+P_x*pow(b,2)*pow(f,2)*i*r_x+P_y*a*b*pow(f,2)*i*r_x+2*P_x*b*c*e*f*i*r_x
-                         +P_y*a*c*e*f*i*r_x+P_z*a*b*e*f*i*r_x-3*P_y*pow(b,2)*c*f*i*r_x-P_z*pow(b,3)*f*i*r_x-P_x*pow(c,2)*pow(e,2)*i*r_x-P_z*a*c*pow(e,2)*i*r_x+P_y*b*pow(c,2)*e*i*r_x+P_z*pow(b,2)*c*e*i*r_x+P_x*a*pow(f,4)*r_x-2*P_x*b*c*pow(f,3)*r_x-P_y*a*c*pow(f,3)*r_x-P_z*a*b*pow(f,3)*r_x+P_x*pow(c,2)*e*pow(f,2)*r_x+P_z*a*c*e*pow(f,2)*r_x+2*P_y*b*pow(c,2)*pow(f,2)*r_x+2*P_z*pow(b,2)*c*pow(f,2)*r_x
-                         -P_y*pow(c,3)*e*f*r_x-3*P_z*b*pow(c,2)*e*f*r_x+P_z*pow(c,3)*pow(e,2)*r_x-2*M_0*a*pow(e,2)*pow(i,2)+pow(P_x,2)*pow(e,2)*pow(i,2)+2*M_0*pow(b,2)*e*pow(i,2)-2*P_x*P_y*b*e*pow(i,2)-2*M_0*pow(a,2)*e*pow(i,2)+2*M_0*a*pow(b,2)*pow(i,2)+pow(P_y,2)*pow(b,2)*pow(i,2)+pow(P_x,2)*pow(b,2)*pow(i,2)-2*P_x*P_y*a*b*pow(i,2)+pow(P_y,2)*pow(a,2)*pow(i,2)+4*M_0*a*e*pow(f,2)*i-2*pow(P_x,2)*e*pow(f,2)*i-2*M_0*pow(b,2)*pow(f,2)*i+2*P_x*P_y*b*pow(f,2)*i
-                         +2*M_0*pow(a,2)*pow(f,2)*i-4*M_0*b*c*e*f*i+2*P_x*P_y*c*e*f*i+2*P_x*P_z*b*e*f*i-4*M_0*a*b*c*f*i-2*pow(P_y,2)*b*c*f*i-2*pow(P_x,2)*b*c*f*i+2*P_x*P_y*a*c*f*i-2*P_y*P_z*pow(b,2)*f*i+2*P_x*P_z*a*b*f*i-2*P_y*P_z*pow(a,2)*f*i+2*M_0*pow(c,2)*pow(e,2)*i-2*P_x*P_z*c*pow(e,2)*i-2*M_0*pow(a,2)*pow(e,2)*i+4*M_0*a*pow(c,2)*e*i+2*P_y*P_z*b*c*e*i
-                         +4*M_0*a*pow(b,2)*e*i-2*M_0*pow(b,2)*pow(c,2)*i+2*P_x*P_y*b*pow(c,2)*i-2*pow(P_y,2)*a*pow(c,2)*i-2*P_x*P_z*pow(b,2)*c*i+2*P_y*P_z*a*b*c*i-2*M_0*pow(b,4)*i-2*M_0*a*pow(f,4)+pow(P_x,2)*pow(f,4)+4*M_0*b*c*pow(f,3)-2*P_x*P_y*c*pow(f,3)-2*P_x*P_z*b*pow(f,3)-2*M_0*pow(c,2)*e*pow(f,2)+2*P_x*P_z*c*e*pow(f,2)+2*M_0*pow(a,2)*e*pow(f,2)-2*M_0*a*pow(c,2)*pow(f,2)+pow(P_y,2)*pow(c,2)*pow(f,2)+pow(P_x,2)*pow(c,2)*pow(f,2)
-                         +2*P_y*P_z*b*c*pow(f,2)-2*P_x*P_z*a*c*pow(f,2)-2*M_0*a*pow(b,2)*pow(f,2)+pow(P_z,2)*pow(b,2)*pow(f,2)+pow(P_x,2)*pow(b,2)*pow(f,2)-2*P_x*P_y*a*b*pow(f,2)+pow(P_z,2)*pow(a,2)*pow(f,2)+pow(P_y,2)*pow(a,2)*pow(f,2)-2*P_y*P_z*pow(c,2)*e*f-4*M_0*a*b*c*e*f-2*pow(P_z,2)*b*c*e*f-2*pow(P_x,2)*b*c*e*f+2*P_x*P_y*a*c*e*f+2*P_x*P_z*a*b*e*f-2*P_y*P_z*pow(a,2)*e*f+4*M_0*b*pow(c,3)*f-2*P_x*P_y*pow(c,3)*f
-                         +2*P_x*P_z*b*pow(c,2)*f+2*P_y*P_z*a*pow(c,2)*f+4*M_0*pow(b,3)*c*f+2*P_x*P_y*pow(b,2)*c*f-2*pow(P_z,2)*a*b*c*f-2*pow(P_y,2)*a*b*c*f-2*P_x*P_z*pow(b,3)*f+2*P_y*P_z*a*pow(b,2)*f+2*M_0*a*pow(c,2)*pow(e,2)+pow(P_z,2)*pow(c,2)*pow(e,2)+pow(P_x,2)*pow(c,2)*pow(e,2)-2*P_x*P_z*a*c*pow(e,2)+pow(P_z,2)*pow(a,2)*pow(e,2)-2*M_0*pow(c,4)*e-2*M_0*pow(b,2)*pow(c,2)*e-2*P_x*P_y*b*pow(c,2)*e+2*P_x*P_z*pow(b,2)*c*e
-                         +2*P_y*P_z*a*b*c*e-2*pow(P_z,2)*a*pow(b,2)*e+pow(P_y,2)*pow(c,4)-2*P_y*P_z*b*pow(c,3)+pow(P_z,2)*pow(b,2)*pow(c,2)+pow(P_y,2)*pow(b,2)*pow(c,2)-2*P_y*P_z*pow(b,3)*c+pow(P_z,2)*pow(b,4);
-  const G4double power_4 = pow(a,2)*pow(e,2)*i*pow(r_z,2)-2*a*pow(b,2)*e*i*pow(r_z,2)+pow(b,4)*i*pow(r_z,2)-pow(a,2)*e*pow(f,2)*pow(r_z,2)+a*pow(b,2)*pow(f,2)*pow(r_z,2)+2*a*b*c*e*f*pow(r_z,2)-2*pow(b,3)*c*f*pow(r_z,2)-a*pow(c,2)*pow(e,2)*pow(r_z,2)+pow(b,2)*pow(c,2)*e*pow(r_z,2)-2*pow(a,2)*e*f*i*r_y*r_z+2*a*pow(b,2)*f*i*r_y*r_z+2*a*b*c*e*i*r_y*r_z-2*pow(b,3)*c*i*r_y*r_z+2*pow(a,2)*pow(f,3)*r_y*r_z-6*a*b*c*pow(f,2)*r_y*r_z+2*a*pow(c,2)*e*f*r_y*r_z+4*pow(b,2)*pow(c,2)*f*r_y*r_z
-                       -2*b*pow(c,3)*e*r_y*r_z+2*a*b*e*f*i*r_x*r_z-2*pow(b,3)*f*i*r_x*r_z-2*a*c*pow(e,2)*i*r_x*r_z+2*pow(b,2)*c*e*i*r_x*r_z-2*a*b*pow(f,3)*r_x*r_z+2*a*c*e*pow(f,2)*r_x*r_z+4*pow(b,2)*c*pow(f,2)*r_x*r_z-6*b*pow(c,2)*e*f*r_x*r_z+2*pow(c,3)*pow(e,2)*r_x*r_z+P_x*b*e*f*i*r_z+2*P_y*a*e*f*i*r_z-3*P_y*pow(b,2)*f*i*r_z+P_x*a*b*f*i*r_z-P_y*pow(a,2)*f*i*r_z
-                       -P_x*c*pow(e,2)*i*r_z-2*P_z*a*pow(e,2)*i*r_z+P_y*b*c*e*i*r_z+2*P_x*a*c*e*i*r_z+2*P_z*pow(b,2)*e*i*r_z-2*P_z*pow(a,2)*e*i*r_z-3*P_x*pow(b,2)*c*i*r_z+P_y*a*b*c*i*r_z+2*P_z*a*pow(b,2)*i*r_z-P_x*b*pow(f,3)*r_z-2*P_y*a*pow(f,3)*r_z+P_x*c*e*pow(f,2)*r_z+2*P_z*a*e*pow(f,2)*r_z+5*P_y*b*c*pow(f,2)*r_z-3*P_x*a*c*pow(f,2)*r_z+P_z*pow(b,2)*pow(f,2)*r_z
-                       +3*P_z*pow(a,2)*pow(f,2)*r_z-3*P_y*pow(c,2)*e*f*r_z-6*P_z*b*c*e*f*r_z+P_x*a*b*e*f*r_z-P_y*pow(a,2)*e*f*r_z+5*P_x*b*pow(c,2)*f*r_z+P_y*a*pow(c,2)*f*r_z-6*P_z*a*b*c*f*r_z-P_x*pow(b,3)*f*r_z+P_y*a*pow(b,2)*f*r_z+3*P_z*pow(c,2)*pow(e,2)*r_z-P_x*a*c*pow(e,2)*r_z+P_z*pow(a,2)*pow(e,2)*r_z-2*P_x*pow(c,3)*e*r_z+2*P_z*a*pow(c,2)*e*r_z+P_x*pow(b,2)*c*e*r_z+P_y*a*b*c*e*r_z
-                       -2*P_z*a*pow(b,2)*e*r_z-P_y*b*pow(c,3)*r_z+P_z*pow(b,2)*pow(c,2)*r_z-P_y*pow(b,3)*c*r_z+P_z*pow(b,4)*r_z+pow(a,2)*e*pow(i,2)*pow(r_y,2)-a*pow(b,2)*pow(i,2)*pow(r_y,2)-pow(a,2)*pow(f,2)*i*pow(r_y,2)+2*a*b*c*f*i*pow(r_y,2)-2*a*pow(c,2)*e*i*pow(r_y,2)+pow(b,2)*pow(c,2)*i*pow(r_y,2)+a*pow(c,2)*pow(f,2)*pow(r_y,2)-2*b*pow(c,3)*f*pow(r_y,2)+pow(c,4)*e*pow(r_y,2)-2*a*b*e*pow(i,2)*r_x*r_y+2*pow(b,3)*pow(i,2)*r_x*r_y+2*a*b*pow(f,2)*i*r_x*r_y
-                       +2*a*c*e*f*i*r_x*r_y-6*pow(b,2)*c*f*i*r_x*r_y+2*b*pow(c,2)*e*i*r_x*r_y-2*a*c*pow(f,3)*r_x*r_y+4*b*pow(c,2)*pow(f,2)*r_x*r_y-2*pow(c,3)*e*f*r_x*r_y-P_x*b*e*pow(i,2)*r_y-2*P_y*a*e*pow(i,2)*r_y+3*P_y*pow(b,2)*pow(i,2)*r_y-P_x*a*b*pow(i,2)*r_y+P_y*pow(a,2)*pow(i,2)*r_y+P_x*b*pow(f,2)*i*r_y+2*P_y*a*pow(f,2)*i*r_y+P_x*c*e*f*i*r_y+2*P_z*a*e*f*i*r_y-6*P_y*b*c*f*i*r_y
-                       +P_x*a*c*f*i*r_y-3*P_z*pow(b,2)*f*i*r_y-P_z*pow(a,2)*f*i*r_y+2*P_y*pow(c,2)*e*i*r_y+P_z*b*c*e*i*r_y+2*P_x*a*b*e*i*r_y-2*P_y*pow(a,2)*e*i*r_y+P_x*b*pow(c,2)*i*r_y-2*P_y*a*pow(c,2)*i*r_y+P_z*a*b*c*i*r_y-2*P_x*pow(b,3)*i*r_y+2*P_y*a*pow(b,2)*i*r_y-P_x*c*pow(f,3)*r_y-2*P_z*a*pow(f,3)*r_y+P_y*pow(c,2)*pow(f,2)*r_y+5*P_z*b*c*pow(f,2)*r_y-3*P_x*a*b*pow(f,2)*r_y
-                       +3*P_y*pow(a,2)*pow(f,2)*r_y-3*P_z*pow(c,2)*e*f*r_y+P_x*a*c*e*f*r_y-P_z*pow(a,2)*e*f*r_y-P_x*pow(c,3)*f*r_y+P_z*a*pow(c,2)*f*r_y+5*P_x*pow(b,2)*c*f*r_y-6*P_y*a*b*c*f*r_y+P_z*a*pow(b,2)*f*r_y-3*P_x*b*pow(c,2)*e*r_y+2*P_y*a*pow(c,2)*e*r_y+P_z*a*b*c*e*r_y+P_y*pow(c,4)*r_y-P_z*b*pow(c,3)*r_y+P_y*pow(b,2)*pow(c,2)*r_y-P_z*pow(b,3)*c*r_y+a*pow(e,2)*pow(i,2)*pow(r_x,2)
-                       -pow(b,2)*e*pow(i,2)*pow(r_x,2)-2*a*e*pow(f,2)*i*pow(r_x,2)+pow(b,2)*pow(f,2)*i*pow(r_x,2)+2*b*c*e*f*i*pow(r_x,2)-pow(c,2)*pow(e,2)*i*pow(r_x,2)+a*pow(f,4)*pow(r_x,2)-2*b*c*pow(f,3)*pow(r_x,2)+pow(c,2)*e*pow(f,2)*pow(r_x,2)+P_x*pow(e,2)*pow(i,2)*r_x-P_y*b*e*pow(i,2)*r_x-2*P_x*a*e*pow(i,2)*r_x+3*P_x*pow(b,2)*pow(i,2)*r_x-P_y*a*b*pow(i,2)*r_x-2*P_x*e*pow(f,2)*i*r_x+P_y*b*pow(f,2)*i*r_x+2*P_x*a*pow(f,2)*i*r_x+P_y*c*e*f*i*r_x
-                       +P_z*b*e*f*i*r_x-6*P_x*b*c*f*i*r_x+P_y*a*c*f*i*r_x+P_z*a*b*f*i*r_x-P_z*c*pow(e,2)*i*r_x-2*P_x*a*pow(e,2)*i*r_x+2*P_x*pow(c,2)*e*i*r_x+2*P_z*a*c*e*i*r_x+2*P_x*pow(b,2)*e*i*r_x+2*P_y*a*b*e*i*r_x+P_y*b*pow(c,2)*i*r_x-3*P_z*pow(b,2)*c*i*r_x-2*P_y*pow(b,3)*i*r_x+P_x*pow(f,4)*r_x-P_y*c*pow(f,3)*r_x-P_z*b*pow(f,3)*r_x+P_z*c*e*pow(f,2)*r_x
-                       +2*P_x*a*e*pow(f,2)*r_x+P_x*pow(c,2)*pow(f,2)*r_x-3*P_z*a*c*pow(f,2)*r_x+P_x*pow(b,2)*pow(f,2)*r_x-3*P_y*a*b*pow(f,2)*r_x-6*P_x*b*c*e*f*r_x+P_y*a*c*e*f*r_x+P_z*a*b*e*f*r_x-P_y*pow(c,3)*f*r_x+5*P_z*b*pow(c,2)*f*r_x+5*P_y*pow(b,2)*c*f*r_x-P_z*pow(b,3)*f*r_x+3*P_x*pow(c,2)*pow(e,2)*r_x-P_z*a*c*pow(e,2)*r_x-2*P_z*pow(c,3)*e*r_x-3*P_y*b*pow(c,2)*e*r_x+P_z*pow(b,2)*c*e*r_x
-                       +M_0*pow(e,2)*pow(i,2)+4*M_0*a*e*pow(i,2)-2*pow(P_x,2)*e*pow(i,2)-2*M_0*pow(b,2)*pow(i,2)+4*P_x*P_y*b*pow(i,2)+M_0*pow(a,2)*pow(i,2)-2*pow(P_y,2)*a*pow(i,2)-2*M_0*e*pow(f,2)*i-4*M_0*a*pow(f,2)*i+2*pow(P_x,2)*pow(f,2)*i+4*M_0*b*c*f*i-4*P_x*P_y*c*f*i-4*P_x*P_z*b*f*i+4*P_y*P_z*a*f*i+4*M_0*a*pow(e,2)*i-2*pow(P_x,2)*pow(e,2)*i-4*M_0*pow(c,2)*e*i+4*P_x*P_z*c*e*i-4*M_0*pow(b,2)*e*i
-                       +4*P_x*P_y*b*e*i+4*M_0*pow(a,2)*e*i-2*M_0*a*pow(c,2)*i+2*pow(P_y,2)*pow(c,2)*i-4*P_y*P_z*b*c*i-4*M_0*a*pow(b,2)*i-2*pow(P_y,2)*pow(b,2)*i-2*pow(P_x,2)*pow(b,2)*i+4*P_x*P_y*a*b*i-2*pow(P_y,2)*pow(a,2)*i+M_0*pow(f,4)-4*M_0*a*e*pow(f,2)+2*pow(P_x,2)*e*pow(f,2)+2*M_0*pow(c,2)*pow(f,2)+2*M_0*pow(b,2)*pow(f,2)-2*M_0*pow(a,2)*pow(f,2)-2*pow(P_z,2)*a*pow(f,2)-2*pow(P_y,2)*a*pow(f,2)+4*M_0*b*c*e*f-4*P_x*P_y*c*e*f
-                       -4*P_x*P_z*b*e*f+4*P_y*P_z*a*e*f+4*M_0*a*b*c*f+4*pow(P_z,2)*b*c*f+4*pow(P_y,2)*b*c*f+4*pow(P_x,2)*b*c*f-4*P_x*P_y*a*c*f-4*P_x*P_z*a*b*f+4*P_y*P_z*pow(a,2)*f-2*M_0*pow(c,2)*pow(e,2)+4*P_x*P_z*c*pow(e,2)+M_0*pow(a,2)*pow(e,2)-2*pow(P_z,2)*a*pow(e,2)-4*M_0*a*pow(c,2)*e-2*pow(P_z,2)*pow(c,2)*e-2*pow(P_x,2)*pow(c,2)*e-4*P_y*P_z*b*c*e+4*P_x*P_z*a*c*e-2*M_0*a*pow(b,2)*e
-                       +2*pow(P_z,2)*pow(b,2)*e-2*pow(P_z,2)*pow(a,2)*e+M_0*pow(c,4)+2*M_0*pow(b,2)*pow(c,2)+2*pow(P_y,2)*a*pow(c,2)-4*P_y*P_z*a*b*c+M_0*pow(b,4)+2*pow(P_z,2)*a*pow(b,2);
-  const G4double power_3 = (-2*a*pow(e,2)*i*pow(r_z,2))+2*pow(b,2)*e*i*pow(r_z,2)-2*pow(a,2)*e*i*pow(r_z,2)+2*a*pow(b,2)*i*pow(r_z,2)+2*a*e*pow(f,2)*pow(r_z,2)+2*pow(a,2)*pow(f,2)*pow(r_z,2)-4*b*c*e*f*pow(r_z,2)-4*a*b*c*f*pow(r_z,2)+2*pow(c,2)*pow(e,2)*pow(r_z,2)+2*a*pow(c,2)*e*pow(r_z,2)+4*a*e*f*i*r_y*r_z-4*pow(b,2)*f*i*r_y*r_z-4*a*pow(f,3)*r_y*r_z+8*b*c*pow(f,2)*r_y*r_z-4*pow(c,2)*e*f*r_y*r_z+4*a*c*e*i*r_x*r_z-4*pow(b,2)*c*i*r_x*r_z
-                          -4*a*c*pow(f,2)*r_x*r_z+8*b*pow(c,2)*f*r_x*r_z-4*pow(c,3)*e*r_x*r_z-P_y*e*f*i*r_z-3*P_x*b*f*i*r_z+2*P_y*a*f*i*r_z+P_z*pow(e,2)*i*r_z+2*P_x*c*e*i*r_z+4*P_z*a*e*i*r_z-3*P_y*b*c*i*r_z-P_x*a*c*i*r_z-2*P_z*pow(b,2)*i*r_z+P_z*pow(a,2)*i*r_z+P_y*pow(f,3)*r_z-P_z*e*pow(f,2)*r_z+P_x*c*pow(f,2)*r_z-6*P_z*a*pow(f,2)*r_z-3*P_x*b*e*f*r_z
-                          +2*P_y*a*e*f*r_z+P_y*pow(c,2)*f*r_z+10*P_z*b*c*f*r_z+P_y*pow(b,2)*f*r_z-3*P_x*a*b*f*r_z+3*P_y*pow(a,2)*f*r_z+3*P_x*c*pow(e,2)*r_z-2*P_z*a*pow(e,2)*r_z-6*P_z*pow(c,2)*e*r_z-3*P_y*b*c*e*r_z+2*P_x*a*c*e*r_z+2*P_z*pow(b,2)*e*r_z-2*P_z*pow(a,2)*e*r_z+P_x*pow(c,3)*r_z-P_z*a*pow(c,2)*r_z+P_x*pow(b,2)*c*r_z-3*P_y*a*b*c*r_z+2*P_z*a*pow(b,2)*r_z
-                          -2*a*e*pow(i,2)*pow(r_y,2)+2*pow(b,2)*pow(i,2)*pow(r_y,2)+2*a*pow(f,2)*i*pow(r_y,2)-4*b*c*f*i*pow(r_y,2)+2*pow(c,2)*e*i*pow(r_y,2)-2*pow(a,2)*e*i*pow(r_y,2)+2*a*pow(b,2)*i*pow(r_y,2)+2*pow(a,2)*pow(f,2)*pow(r_y,2)-4*a*b*c*f*pow(r_y,2)+2*a*pow(c,2)*e*pow(r_y,2)+4*a*b*e*i*r_x*r_y-4*pow(b,3)*i*r_x*r_y-4*a*b*pow(f,2)*r_x*r_y+8*pow(b,2)*c*f*r_x*r_y-4*b*pow(c,2)*e*r_x*r_y+P_y*e*pow(i,2)*r_y+3*P_x*b*pow(i,2)*r_y
-                          -2*P_y*a*pow(i,2)*r_y-P_y*pow(f,2)*i*r_y-P_z*e*f*i*r_y-3*P_x*c*f*i*r_y+2*P_z*a*f*i*r_y+2*P_x*b*e*i*r_y+4*P_y*a*e*i*r_y+2*P_y*pow(c,2)*i*r_y-3*P_z*b*c*i*r_y-6*P_y*pow(b,2)*i*r_y+2*P_x*a*b*i*r_y-2*P_y*pow(a,2)*i*r_y+P_z*pow(f,3)*r_y+P_x*b*pow(f,2)*r_y-6*P_y*a*pow(f,2)*r_y-3*P_x*c*e*f*r_y+2*P_z*a*e*f*r_y+P_z*pow(c,2)*f*r_y
-                          +10*P_y*b*c*f*r_y-3*P_x*a*c*f*r_y+P_z*pow(b,2)*f*r_y+3*P_z*pow(a,2)*f*r_y-2*P_y*pow(c,2)*e*r_y-3*P_z*b*c*e*r_y-P_x*a*b*e*r_y+P_y*pow(a,2)*e*r_y+P_x*b*pow(c,2)*r_y+2*P_y*a*pow(c,2)*r_y-3*P_z*a*b*c*r_y+P_x*pow(b,3)*r_y-P_y*a*pow(b,2)*r_y-2*a*e*pow(i,2)*pow(r_x,2)+2*pow(b,2)*pow(i,2)*pow(r_x,2)+2*a*pow(f,2)*i*pow(r_x,2)-4*b*c*f*i*pow(r_x,2)-2*a*pow(e,2)*i*pow(r_x,2)
-                          +2*pow(c,2)*e*i*pow(r_x,2)+2*pow(b,2)*e*i*pow(r_x,2)+2*a*e*pow(f,2)*pow(r_x,2)-4*b*c*e*f*pow(r_x,2)+2*pow(c,2)*pow(e,2)*pow(r_x,2)-2*P_x*e*pow(i,2)*r_x+3*P_y*b*pow(i,2)*r_x+P_x*a*pow(i,2)*r_x+2*P_x*pow(f,2)*i*r_x-3*P_y*c*f*i*r_x-3*P_z*b*f*i*r_x-2*P_x*pow(e,2)*i*r_x+2*P_z*c*e*i*r_x+2*P_y*b*e*i*r_x+4*P_x*a*e*i*r_x-P_x*pow(c,2)*i*r_x-P_z*a*c*i*r_x-6*P_x*pow(b,2)*i*r_x
-                          +2*P_y*a*b*i*r_x+2*P_x*e*pow(f,2)*r_x+P_z*c*pow(f,2)*r_x+P_y*b*pow(f,2)*r_x-2*P_x*a*pow(f,2)*r_x-3*P_y*c*e*f*r_x-3*P_z*b*e*f*r_x+10*P_x*b*c*f*r_x-3*P_y*a*c*f*r_x-3*P_z*a*b*f*r_x+3*P_z*c*pow(e,2)*r_x+P_x*a*pow(e,2)*r_x-6*P_x*pow(c,2)*e*r_x+2*P_z*a*c*e*r_x-P_x*pow(b,2)*e*r_x-P_y*a*b*e*r_x+P_z*pow(c,3)*r_x+P_y*b*pow(c,2)*r_x
-                          +P_z*pow(b,2)*c*r_x+P_y*pow(b,3)*r_x-2*M_0*e*pow(i,2)-2*M_0*a*pow(i,2)+pow(P_y,2)*pow(i,2)+pow(P_x,2)*pow(i,2)+2*M_0*pow(f,2)*i-2*P_y*P_z*f*i-2*M_0*pow(e,2)*i-8*M_0*a*e*i+4*pow(P_x,2)*e*i+2*M_0*pow(c,2)*i-2*P_x*P_z*c*i+4*M_0*pow(b,2)*i-8*P_x*P_y*b*i-2*M_0*pow(a,2)*i+4*pow(P_y,2)*a*i+2*M_0*e*pow(f,2)+4*M_0*a*pow(f,2)+pow(P_z,2)*pow(f,2)+pow(P_y,2)*pow(f,2)-2*pow(P_x,2)*pow(f,2)-2*P_y*P_z*e*f
-                          -4*M_0*b*c*f+6*P_x*P_y*c*f+6*P_x*P_z*b*f-8*P_y*P_z*a*f-2*M_0*a*pow(e,2)+pow(P_z,2)*pow(e,2)+pow(P_x,2)*pow(e,2)+4*M_0*pow(c,2)*e-8*P_x*P_z*c*e+2*M_0*pow(b,2)*e-2*P_x*P_y*b*e-2*M_0*pow(a,2)*e+4*pow(P_z,2)*a*e+2*M_0*a*pow(c,2)+pow(P_z,2)*pow(c,2)-2*pow(P_y,2)*pow(c,2)+pow(P_x,2)*pow(c,2)+6*P_y*P_z*b*c-2*P_x*P_z*a*c+2*M_0*a*pow(b,2)-2*pow(P_z,2)*pow(b,2)+pow(P_y,2)*pow(b,2)+pow(P_x,2)*pow(b,2)
-                          -2*P_x*P_y*a*b+pow(P_z,2)*pow(a,2)+pow(P_y,2)*pow(a,2);
-  const G4double power_2 = pow(e,2)*i*pow(r_z,2)+4*a*e*i*pow(r_z,2)-2*pow(b,2)*i*pow(r_z,2)+pow(a,2)*i*pow(r_z,2)-e*pow(f,2)*pow(r_z,2)-4*a*pow(f,2)*pow(r_z,2)+6*b*c*f*pow(r_z,2)-4*pow(c,2)*e*pow(r_z,2)-a*pow(c,2)*pow(r_z,2)-2*e*f*i*r_y*r_z-2*b*c*i*r_y*r_z+2*pow(f,3)*r_y*r_z+2*pow(c,2)*f*r_y*r_z+2*pow(b,2)*f*r_y*r_z+2*pow(a,2)*f*r_y*r_z-2*b*c*e*r_y*r_z-2*a*b*c*r_y*r_z-2*b*f*i*r_x*r_z-2*a*c*i*r_x*r_z+2*c*pow(f,2)*r_x*r_z
-                   -2*b*e*f*r_x*r_z-2*a*b*f*r_x*r_z+2*c*pow(e,2)*r_x*r_z+2*pow(c,3)*r_x*r_z+2*pow(b,2)*c*r_x*r_z-P_y*f*i*r_z-2*P_z*e*i*r_z-P_x*c*i*r_z-2*P_z*a*i*r_z+3*P_z*pow(f,2)*r_z-P_y*e*f*r_z+5*P_x*b*f*r_z-6*P_y*a*f*r_z+P_z*pow(e,2)*r_z-6*P_x*c*e*r_z+4*P_z*a*e*r_z+3*P_z*pow(c,2)*r_z+5*P_y*b*c*r_z-P_x*a*c*r_z-2*P_z*pow(b,2)*r_z+P_z*pow(a,2)*r_z
-                   +e*pow(i,2)*pow(r_y,2)-pow(f,2)*i*pow(r_y,2)+4*a*e*i*pow(r_y,2)-4*pow(b,2)*i*pow(r_y,2)-4*a*pow(f,2)*pow(r_y,2)+6*b*c*f*pow(r_y,2)-2*pow(c,2)*e*pow(r_y,2)+pow(a,2)*e*pow(r_y,2)-a*pow(b,2)*pow(r_y,2)+2*b*pow(i,2)*r_x*r_y-2*c*f*i*r_x*r_y+2*b*pow(f,2)*r_x*r_y-2*c*e*f*r_x*r_y-2*a*c*f*r_x*r_y-2*a*b*e*r_x*r_y+2*b*pow(c,2)*r_x*r_y+2*pow(b,3)*r_x*r_y+P_y*pow(i,2)*r_y-P_z*f*i*r_y-2*P_y*e*i*r_y
-                   -6*P_x*b*i*r_y+4*P_y*a*i*r_y+3*P_y*pow(f,2)*r_y-P_z*e*f*r_y+5*P_x*c*f*r_y-6*P_z*a*f*r_y-P_x*b*e*r_y-2*P_y*a*e*r_y-2*P_y*pow(c,2)*r_y+5*P_z*b*c*r_y+3*P_y*pow(b,2)*r_y-P_x*a*b*r_y+P_y*pow(a,2)*r_y+a*pow(i,2)*pow(r_x,2)+4*a*e*i*pow(r_x,2)-pow(c,2)*i*pow(r_x,2)-4*pow(b,2)*i*pow(r_x,2)-2*a*pow(f,2)*pow(r_x,2)+6*b*c*f*pow(r_x,2)+a*pow(e,2)*pow(r_x,2)-4*pow(c,2)*e*pow(r_x,2)
-                   -pow(b,2)*e*pow(r_x,2)+P_x*pow(i,2)*r_x+4*P_x*e*i*r_x-P_z*c*i*r_x-6*P_y*b*i*r_x-2*P_x*a*i*r_x-2*P_x*pow(f,2)*r_x+5*P_y*c*f*r_x+5*P_z*b*f*r_x+P_x*pow(e,2)*r_x-6*P_z*c*e*r_x-P_y*b*e*r_x-2*P_x*a*e*r_x+3*P_x*pow(c,2)*r_x-P_z*a*c*r_x+3*P_x*pow(b,2)*r_x-P_y*a*b*r_x+M_0*pow(i,2)+4*M_0*e*i+4*M_0*a*i-2*pow(P_y,2)*i-2*pow(P_x,2)*i-2*M_0*pow(f,2)
-                   +4*P_y*P_z*f+M_0*pow(e,2)+4*M_0*a*e-2*pow(P_z,2)*e-2*pow(P_x,2)*e-2*M_0*pow(c,2)+4*P_x*P_z*c-2*M_0*pow(b,2)+4*P_x*P_y*b+M_0*pow(a,2)-2*pow(P_z,2)*a-2*pow(P_y,2)*a;
-  const G4double power_1 = (-2*e*i*pow(r_z,2))-2*a*i*pow(r_z,2)+2*pow(f,2)*pow(r_z,2)+2*pow(c,2)*pow(r_z,2)-4*a*f*r_y*r_z+4*b*c*r_y*r_z+4*b*f*r_x*r_z-4*c*e*r_x*r_z+P_z*i*r_z+3*P_y*f*r_z-2*P_z*e*r_z+3*P_x*c*r_z-2*P_z*a*r_z-2*e*i*pow(r_y,2)+2*pow(f,2)*pow(r_y,2)-2*a*e*pow(r_y,2)+2*pow(b,2)*pow(r_y,2)-4*b*i*r_x*r_y+4*c*f*r_x*r_y-2*P_y*i*r_y+3*P_z*f*r_y+P_y*e*r_y+3*P_x*b*r_y-2*P_y*a*r_y
-                      -2*a*i*pow(r_x,2)-2*a*e*pow(r_x,2)+2*pow(c,2)*pow(r_x,2)+2*pow(b,2)*pow(r_x,2)-2*P_x*i*r_x-2*P_x*e*r_x+3*P_z*c*r_x+3*P_y*b*r_x+P_x*a*r_x-2*M_0*i-2*M_0*e-2*M_0*a+pow(P_z,2)+pow(P_y,2)+pow(P_x,2);
-  const G4double power_0 = i*pow(r_z,2)+2*f*r_y*r_z+2*c*r_x*r_z+P_z*r_z+e*pow(r_y,2)+2*b*r_x*r_y+P_y*r_y+a*pow(r_x,2)+P_x*r_x+M_0;
+  const G4double power_6 =
+(-a*pow(b_x,2)*pow(e,2)*pow(i,2))+M_0*pow(a,2)*pow(e,2)*pow(i,2)-pow(a,2)*pow(b_y,2)*e*pow(i,2)+2*a*b*b_x*b_y*e*pow(i,2)
+                         +pow(b,2)*pow(b_x,2)*e*pow(i,2)-2*M_0*a*pow(b,2)*e*pow(i,2)+a*pow(b,2)*pow(b_y,2)*pow(i,2)
+                         -2*pow(b,3)*b_x*b_y*pow(i,2)+M_0*pow(b,4)*pow(i,2)+2*a*pow(b_x,2)*e*pow(f,2)*i
+                         -2*M_0*pow(a,2)*e*pow(f,2)*i+pow(a,2)*pow(b_y,2)*pow(f,2)*i
+                         -2*a*b*b_x*b_y*pow(f,2)*i-pow(b,2)*pow(b_x,2)*pow(f,2)*i
+                         +2*M_0*a*pow(b,2)*pow(f,2)*i-2*a*b_x*b_y*c*e*f*i
+                         -2*b*pow(b_x,2)*c*e*f*i+4*M_0*a*b*c*e*f*i
+                         +2*pow(a,2)*b_y*b_z*e*f*i-2*a*b*b_x*b_z*e*f*i
+                         -2*a*b*pow(b_y,2)*c*f*i+6*pow(b,2)*b_x*b_y*c*f*i
+                         -4*M_0*pow(b,3)*c*f*i-2*a*pow(b,2)*b_y*b_z*f*i
+                         +2*pow(b,3)*b_x*b_z*f*i+pow(b_x,2)*pow(c,2)*pow(e,2)*i-2*M_0*a*pow(c,2)*pow(e,2)*i
+                         +2*a*b_x*b_z*c*pow(e,2)*i-pow(a,2)*pow(b_z,2)*pow(e,2)*i
+                         +2*a*pow(b_y,2)*pow(c,2)*e*i-2*b*b_x*b_y*pow(c,2)*e*i
+                         +2*M_0*pow(b,2)*pow(c,2)*e*i-2*a*b*b_y*b_z*c*e*i
+                         -2*pow(b,2)*b_x*b_z*c*e*i+2*a*pow(b,2)*pow(b_z,2)*e*i
+                         -pow(b,2)*pow(b_y,2)*pow(c,2)*i+2*pow(b,3)*b_y*b_z*c*i-pow(b,4)*pow(b_z,2)*i
+                         -a*pow(b_x,2)*pow(f,4)+M_0*pow(a,2)*pow(f,4)+2*a*b_x*b_y*c*pow(f,3)
+                         +2*b*pow(b_x,2)*c*pow(f,3)-4*M_0*a*b*c*pow(f,3)-2*pow(a,2)*b_y*b_z*pow(f,3)
+                         +2*a*b*b_x*b_z*pow(f,3)-pow(b_x,2)*pow(c,2)*e*pow(f,2)+2*M_0*a*pow(c,2)*e*pow(f,2)
+                         -2*a*b_x*b_z*c*e*pow(f,2)+pow(a,2)*pow(b_z,2)*e*pow(f,2)-a*pow(b_y,2)*pow(c,2)*pow(f,2)
+                         -4*b*b_x*b_y*pow(c,2)*pow(f,2)+4*M_0*pow(b,2)*pow(c,2)*pow(f,2)
+                         +6*a*b*b_y*b_z*c*pow(f,2)-4*pow(b,2)*b_x*b_z*c*pow(f,2)
+                         -a*pow(b,2)*pow(b_z,2)*pow(f,2)+2*b_x*b_y*pow(c,3)*e*f-4*M_0*b*pow(c,3)*e*f
+                         -2*a*b_y*b_z*pow(c,2)*e*f+6*b*b_x*b_z*pow(c,2)*e*f
+                         -2*a*b*pow(b_z,2)*c*e*f+2*b*pow(b_y,2)*pow(c,3)*f
+                         -4*pow(b,2)*b_y*b_z*pow(c,2)*f+2*pow(b,3)*pow(b_z,2)*c*f+M_0*pow(c,4)*pow(e,2)
+                         -2*b_x*b_z*pow(c,3)*pow(e,2)+a*pow(b_z,2)*pow(c,2)*pow(e,2)-pow(b_y,2)*pow(c,4)*e
+                         +2*b*b_y*b_z*pow(c,3)*e-pow(b,2)*pow(b_z,2)*pow(c,2)*e;
+  const G4double power_5 =
+2*pow(b_x,2)*pow(e,2)*pow(i,2)-2*M_0*a*pow(e,2)*pow(i,2)+2*a*pow(b_y,2)*e*pow(i,2)-4*b*b_x*b_y*e*pow(i,2)
+                      +2*a*pow(b_x,2)*e*pow(i,2)+2*M_0*pow(b,2)*e*pow(i,2)-2*M_0*pow(a,2)*e*pow(i,2)
+                      +2*pow(a,2)*pow(b_y,2)*pow(i,2)-4*a*b*b_x*b_y*pow(i,2)+2*M_0*a*pow(b,2)*pow(i,2)
+                      -4*pow(b_x,2)*e*pow(f,2)*i+4*M_0*a*e*pow(f,2)*i-2*a*pow(b_y,2)*pow(f,2)*i
+                      +4*b*b_x*b_y*pow(f,2)*i-2*a*pow(b_x,2)*pow(f,2)*i-2*M_0*pow(b,2)*pow(f,2)*i
+                      +2*M_0*pow(a,2)*pow(f,2)*i+4*b_x*b_y*c*e*f*i-4*M_0*b*c*e*f*i
+                      -4*a*b_y*b_z*e*f*i+4*b*b_x*b_z*e*f*i+4*a*b_x*b_y*c*f*i
+                      -4*M_0*a*b*c*f*i-4*pow(a,2)*b_y*b_z*f*i+4*a*b*b_x*b_z*f*i
+                      +2*M_0*pow(c,2)*pow(e,2)*i-4*b_x*b_z*c*pow(e,2)*i+2*a*pow(b_z,2)*pow(e,2)*i
+                      +2*a*pow(b_x,2)*pow(e,2)*i-2*M_0*pow(a,2)*pow(e,2)*i-2*pow(b_y,2)*pow(c,2)*e*i
+                      -2*pow(b_x,2)*pow(c,2)*e*i+4*M_0*a*pow(c,2)*e*i+4*b*b_y*b_z*c*e*i
+                      -4*a*b_x*b_z*c*e*i-2*pow(b,2)*pow(b_z,2)*e*i+2*pow(a,2)*pow(b_z,2)*e*i
+                      +2*pow(a,2)*pow(b_y,2)*e*i-4*a*b*b_x*b_y*e*i-2*pow(b,2)*pow(b_x,2)*e*i
+                      +4*M_0*a*pow(b,2)*e*i-4*a*pow(b_y,2)*pow(c,2)*i+4*b*b_x*b_y*pow(c,2)*i
+                      -2*M_0*pow(b,2)*pow(c,2)*i+4*a*b*b_y*b_z*c*i-2*a*pow(b,2)*pow(b_z,2)*i
+                      -2*a*pow(b,2)*pow(b_y,2)*i+4*pow(b,3)*b_x*b_y*i-2*M_0*pow(b,4)*i+2*pow(b_x,2)*pow(f,4)
+                      -2*M_0*a*pow(f,4)-4*b_x*b_y*c*pow(f,3)+4*M_0*b*c*pow(f,3)
+                      +4*a*b_y*b_z*pow(f,3)-4*b*b_x*b_z*pow(f,3)-2*M_0*pow(c,2)*e*pow(f,2)
+                      +4*b_x*b_z*c*e*pow(f,2)-2*a*pow(b_z,2)*e*pow(f,2)-2*a*pow(b_x,2)*e*pow(f,2)
+                      +2*M_0*pow(a,2)*e*pow(f,2)+2*pow(b_y,2)*pow(c,2)*pow(f,2)+2*pow(b_x,2)*pow(c,2)*pow(f,2)
+                      -2*M_0*a*pow(c,2)*pow(f,2)-4*b*b_y*b_z*c*pow(f,2)+2*pow(b,2)*pow(b_z,2)*pow(f,2)
+                      +2*pow(b,2)*pow(b_x,2)*pow(f,2)-2*M_0*a*pow(b,2)*pow(f,2)+4*a*b_x*b_y*c*e*f
+                      -4*M_0*a*b*c*e*f-4*pow(a,2)*b_y*b_z*e*f+4*a*b*b_x*b_z*e*f
+                      -4*b_x*b_y*pow(c,3)*f+4*M_0*b*pow(c,3)*f+4*a*b_y*b_z*pow(c,2)*f
+                      -4*b*b_x*b_z*pow(c,2)*f-4*pow(b,2)*b_x*b_y*c*f+4*M_0*pow(b,3)*c*f
+                      +4*a*pow(b,2)*b_y*b_z*f-4*pow(b,3)*b_x*b_z*f+2*M_0*a*pow(c,2)*pow(e,2)
+                      -4*a*b_x*b_z*c*pow(e,2)+2*pow(a,2)*pow(b_z,2)*pow(e,2)-2*M_0*pow(c,4)*e
+                      +4*b_x*b_z*pow(c,3)*e-2*a*pow(b_z,2)*pow(c,2)*e-2*a*pow(b_y,2)*pow(c,2)*e
+                      -2*M_0*pow(b,2)*pow(c,2)*e+4*a*b*b_y*b_z*c*e+4*pow(b,2)*b_x*b_z*c*e
+                      -4*a*pow(b,2)*pow(b_z,2)*e+2*pow(b_y,2)*pow(c,4)-4*b*b_y*b_z*pow(c,3)
+                      +2*pow(b,2)*pow(b_z,2)*pow(c,2)+2*pow(b,2)*pow(b_y,2)*pow(c,2)-4*pow(b,3)*b_y*b_z*c
+                      +2*pow(b,4)*pow(b_z,2);
+  const G4double power_4 =
+pow(a,2)*pow(e,2)*i*pow(r_z,2)-2*a*pow(b,2)*e*i*pow(r_z,2)+pow(b,4)*i*pow(r_z,2)-pow(a,2)*e*pow(f,2)*pow(r_z,2)
+                      +a*pow(b,2)*pow(f,2)*pow(r_z,2)+2*a*b*c*e*f*pow(r_z,2)-2*pow(b,3)*c*f*pow(r_z,2)
+                      -a*pow(c,2)*pow(e,2)*pow(r_z,2)+pow(b,2)*pow(c,2)*e*pow(r_z,2)-2*pow(a,2)*e*f*i*r_y*r_z
+                      +2*a*pow(b,2)*f*i*r_y*r_z+2*a*b*c*e*i*r_y*r_z
+                      -2*pow(b,3)*c*i*r_y*r_z+2*pow(a,2)*pow(f,3)*r_y*r_z-6*a*b*c*pow(f,2)*r_y*r_z
+                      +2*a*pow(c,2)*e*f*r_y*r_z+4*pow(b,2)*pow(c,2)*f*r_y*r_z
+                      -2*b*pow(c,3)*e*r_y*r_z+2*a*b*e*f*i*r_x*r_z-2*pow(b,3)*f*i*r_x*r_z
+                      -2*a*c*pow(e,2)*i*r_x*r_z+2*pow(b,2)*c*e*i*r_x*r_z
+                      -2*a*b*pow(f,3)*r_x*r_z+2*a*c*e*pow(f,2)*r_x*r_z
+                      +4*pow(b,2)*c*pow(f,2)*r_x*r_z-6*b*pow(c,2)*e*f*r_x*r_z
+                      +2*pow(c,3)*pow(e,2)*r_x*r_z+2*b*b_x*e*f*i*r_z-2*pow(b,2)*b_y*f*i*r_z
+                      -2*pow(a,2)*b_y*f*i*r_z+2*a*b*b_x*f*i*r_z-2*b_x*c*pow(e,2)*i*r_z
+                      +2*b*b_y*c*e*i*r_z+2*a*b*b_y*c*i*r_z-2*pow(b,2)*b_x*c*i*r_z
+                      -2*b*b_x*pow(f,3)*r_z+2*b_x*c*e*pow(f,2)*r_z+2*b*b_y*c*pow(f,2)*r_z
+                      -2*a*b_x*c*pow(f,2)*r_z+2*pow(b,2)*b_z*pow(f,2)*r_z+2*pow(a,2)*b_z*pow(f,2)*r_z
+                      -2*b_y*pow(c,2)*e*f*r_z-4*b*b_z*c*e*f*r_z-2*pow(a,2)*b_y*e*f*r_z
+                      +2*a*b*b_x*e*f*r_z+2*a*b_y*pow(c,2)*f*r_z+2*b*b_x*pow(c,2)*f*r_z
+                      -4*a*b*b_z*c*f*r_z+2*a*pow(b,2)*b_y*f*r_z-2*pow(b,3)*b_x*f*r_z
+                      +2*b_z*pow(c,2)*pow(e,2)*r_z-2*a*b_x*c*pow(e,2)*r_z+2*pow(a,2)*b_z*pow(e,2)*r_z
+                      +2*a*b*b_y*c*e*r_z+2*pow(b,2)*b_x*c*e*r_z-4*a*pow(b,2)*b_z*e*r_z
+                      -2*b*b_y*pow(c,3)*r_z+2*pow(b,2)*b_z*pow(c,2)*r_z-2*pow(b,3)*b_y*c*r_z
+                      +2*pow(b,4)*b_z*r_z+pow(a,2)*e*pow(i,2)*pow(r_y,2)-a*pow(b,2)*pow(i,2)*pow(r_y,2)
+                      -pow(a,2)*pow(f,2)*i*pow(r_y,2)+2*a*b*c*f*i*pow(r_y,2)-2*a*pow(c,2)*e*i*pow(r_y,2)
+                      +pow(b,2)*pow(c,2)*i*pow(r_y,2)+a*pow(c,2)*pow(f,2)*pow(r_y,2)-2*b*pow(c,3)*f*pow(r_y,2)
+                      +pow(c,4)*e*pow(r_y,2)-2*a*b*e*pow(i,2)*r_x*r_y+2*pow(b,3)*pow(i,2)*r_x*r_y
+                      +2*a*b*pow(f,2)*i*r_x*r_y+2*a*c*e*f*i*r_x*r_y
+                      -6*pow(b,2)*c*f*i*r_x*r_y+2*b*pow(c,2)*e*i*r_x*r_y
+                      -2*a*c*pow(f,3)*r_x*r_y+4*b*pow(c,2)*pow(f,2)*r_x*r_y-2*pow(c,3)*e*f*r_x*r_y
+                      -2*b*b_x*e*pow(i,2)*r_y+2*pow(b,2)*b_y*pow(i,2)*r_y+2*pow(a,2)*b_y*pow(i,2)*r_y
+                      -2*a*b*b_x*pow(i,2)*r_y+2*b*b_x*pow(f,2)*i*r_y+2*b_x*c*e*f*i*r_y
+                      -4*b*b_y*c*f*i*r_y+2*a*b_x*c*f*i*r_y-2*pow(b,2)*b_z*f*i*r_y
+                      -2*pow(a,2)*b_z*f*i*r_y+2*b*b_z*c*e*i*r_y-4*a*b_y*pow(c,2)*i*r_y
+                      +2*b*b_x*pow(c,2)*i*r_y+2*a*b*b_z*c*i*r_y-2*b_x*c*pow(f,3)*r_y
+                      +2*b_y*pow(c,2)*pow(f,2)*r_y+2*b*b_z*c*pow(f,2)*r_y+2*pow(a,2)*b_y*pow(f,2)*r_y
+                      -2*a*b*b_x*pow(f,2)*r_y-2*b_z*pow(c,2)*e*f*r_y+2*a*b_x*c*e*f*r_y
+                      -2*pow(a,2)*b_z*e*f*r_y-2*b_x*pow(c,3)*f*r_y+2*a*b_z*pow(c,2)*f*r_y
+                      -4*a*b*b_y*c*f*r_y+2*pow(b,2)*b_x*c*f*r_y+2*a*pow(b,2)*b_z*f*r_y
+                      -2*b*b_x*pow(c,2)*e*r_y+2*a*b*b_z*c*e*r_y+2*b_y*pow(c,4)*r_y
+                      -2*b*b_z*pow(c,3)*r_y+2*pow(b,2)*b_y*pow(c,2)*r_y-2*pow(b,3)*b_z*c*r_y
+                      +a*pow(e,2)*pow(i,2)*pow(r_x,2)-pow(b,2)*e*pow(i,2)*pow(r_x,2)-2*a*e*pow(f,2)*i*pow(r_x,2)
+                      +pow(b,2)*pow(f,2)*i*pow(r_x,2)+2*b*c*e*f*i*pow(r_x,2)-pow(c,2)*pow(e,2)*i*pow(r_x,2)
+                      +a*pow(f,4)*pow(r_x,2)-2*b*c*pow(f,3)*pow(r_x,2)+pow(c,2)*e*pow(f,2)*pow(r_x,2)
+                      +2*b_x*pow(e,2)*pow(i,2)*r_x-2*b*b_y*e*pow(i,2)*r_x-2*a*b*b_y*pow(i,2)*r_x
+                      +2*pow(b,2)*b_x*pow(i,2)*r_x-4*b_x*e*pow(f,2)*i*r_x+2*b*b_y*pow(f,2)*i*r_x
+                      +2*b_y*c*e*f*i*r_x+2*b*b_z*e*f*i*r_x+2*a*b_y*c*f*i*r_x
+                      -4*b*b_x*c*f*i*r_x+2*a*b*b_z*f*i*r_x-2*b_z*c*pow(e,2)*i*r_x
+                      +2*b*b_y*pow(c,2)*i*r_x-2*pow(b,2)*b_z*c*i*r_x+2*b_x*pow(f,4)*r_x
+                      -2*b_y*c*pow(f,3)*r_x-2*b*b_z*pow(f,3)*r_x+2*b_z*c*e*pow(f,2)*r_x
+                      +2*b_x*pow(c,2)*pow(f,2)*r_x-2*a*b_z*c*pow(f,2)*r_x-2*a*b*b_y*pow(f,2)*r_x
+                      +2*pow(b,2)*b_x*pow(f,2)*r_x+2*a*b_y*c*e*f*r_x-4*b*b_x*c*e*f*r_x
+                      +2*a*b*b_z*e*f*r_x-2*b_y*pow(c,3)*f*r_x+2*b*b_z*pow(c,2)*f*r_x
+                      +2*pow(b,2)*b_y*c*f*r_x-2*pow(b,3)*b_z*f*r_x+2*b_x*pow(c,2)*pow(e,2)*r_x
+                      -2*a*b_z*c*pow(e,2)*r_x-2*b*b_y*pow(c,2)*e*r_x+2*pow(b,2)*b_z*c*e*r_x
+                      +M_0*pow(e,2)*pow(i,2)-pow(b_y,2)*e*pow(i,2)-4*pow(b_x,2)*e*pow(i,2)+4*M_0*a*e*pow(i,2)
+                      -4*a*pow(b_y,2)*pow(i,2)+6*b*b_x*b_y*pow(i,2)-a*pow(b_x,2)*pow(i,2)-2*M_0*pow(b,2)*pow(i,2)
+                      +M_0*pow(a,2)*pow(i,2)-2*M_0*e*pow(f,2)*i+pow(b_y,2)*pow(f,2)*i+4*pow(b_x,2)*pow(f,2)*i
+                      -4*M_0*a*pow(f,2)*i+2*b_y*b_z*e*f*i-6*b_x*b_y*c*f*i
+                      +4*M_0*b*c*f*i+8*a*b_y*b_z*f*i-6*b*b_x*b_z*f*i
+                      -pow(b_z,2)*pow(e,2)*i-4*pow(b_x,2)*pow(e,2)*i+4*M_0*a*pow(e,2)*i-4*M_0*pow(c,2)*e*i
+                      +8*b_x*b_z*c*e*i-4*a*pow(b_z,2)*e*i-4*a*pow(b_y,2)*e*i
+                      +8*b*b_x*b_y*e*i-4*a*pow(b_x,2)*e*i-4*M_0*pow(b,2)*e*i
+                      +4*M_0*pow(a,2)*e*i+4*pow(b_y,2)*pow(c,2)*i+pow(b_x,2)*pow(c,2)*i-2*M_0*a*pow(c,2)*i
+                      -6*b*b_y*b_z*c*i+2*a*b_x*b_z*c*i+2*pow(b,2)*pow(b_z,2)*i
+                      -pow(a,2)*pow(b_z,2)*i-4*pow(a,2)*pow(b_y,2)*i+8*a*b*b_x*b_y*i-4*M_0*a*pow(b,2)*i
+                      +M_0*pow(f,4)-2*b_y*b_z*pow(f,3)+pow(b_z,2)*e*pow(f,2)+4*pow(b_x,2)*e*pow(f,2)
+                      -4*M_0*a*e*pow(f,2)+2*M_0*pow(c,2)*pow(f,2)-2*b_x*b_z*c*pow(f,2)
+                      -2*b*b_x*b_y*pow(f,2)+2*a*pow(b_x,2)*pow(f,2)+2*M_0*pow(b,2)*pow(f,2)
+                      -2*M_0*pow(a,2)*pow(f,2)-6*b_x*b_y*c*e*f+4*M_0*b*c*e*f
+                      +8*a*b_y*b_z*e*f-6*b*b_x*b_z*e*f-2*b_y*b_z*pow(c,2)*f
+                      +2*b*pow(b_z,2)*c*f+2*b*pow(b_y,2)*c*f-6*a*b_x*b_y*c*f
+                      +2*b*pow(b_x,2)*c*f+4*M_0*a*b*c*f-2*pow(b,2)*b_y*b_z*f
+                      +6*pow(a,2)*b_y*b_z*f-6*a*b*b_x*b_z*f-2*M_0*pow(c,2)*pow(e,2)
+                      +6*b_x*b_z*c*pow(e,2)-4*a*pow(b_z,2)*pow(e,2)-a*pow(b_x,2)*pow(e,2)+M_0*pow(a,2)*pow(e,2)
+                      +2*pow(b_y,2)*pow(c,2)*e-4*M_0*a*pow(c,2)*e-6*b*b_y*b_z*c*e
+                      +8*a*b_x*b_z*c*e+4*pow(b,2)*pow(b_z,2)*e-4*pow(a,2)*pow(b_z,2)*e-pow(a,2)*pow(b_y,2)*e
+                      +2*a*b*b_x*b_y*e+pow(b,2)*pow(b_x,2)*e-2*M_0*a*pow(b,2)*e+M_0*pow(c,4)
+                      -2*b_x*b_z*pow(c,3)+a*pow(b_z,2)*pow(c,2)+4*a*pow(b_y,2)*pow(c,2)-2*b*b_x*b_y*pow(c,2)
+                      +2*M_0*pow(b,2)*pow(c,2)-6*a*b*b_y*b_z*c-2*pow(b,2)*b_x*b_z*c
+                      +4*a*pow(b,2)*pow(b_z,2)+a*pow(b,2)*pow(b_y,2)-2*pow(b,3)*b_x*b_y+M_0*pow(b,4);
+  const G4double power_3 = (-2*a*pow(e,2)*i*pow(r_z,2))+2*pow(b,2)*e*i*pow(r_z,2)-2*pow(a,2)*e*i*pow(r_z,2)+2*a*pow(b,2)*i*pow(r_z,2)
+                         +2*a*e*pow(f,2)*pow(r_z,2)+2*pow(a,2)*pow(f,2)*pow(r_z,2)-4*b*c*e*f*pow(r_z,2)
+                         -4*a*b*c*f*pow(r_z,2)+2*pow(c,2)*pow(e,2)*pow(r_z,2)+2*a*pow(c,2)*e*pow(r_z,2)
+                         +4*a*e*f*i*r_y*r_z-4*pow(b,2)*f*i*r_y*r_z-4*a*pow(f,3)*r_y*r_z
+                         +8*b*c*pow(f,2)*r_y*r_z-4*pow(c,2)*e*f*r_y*r_z
+                         +4*a*c*e*i*r_x*r_z-4*pow(b,2)*c*i*r_x*r_z
+                         -4*a*c*pow(f,2)*r_x*r_z+8*b*pow(c,2)*f*r_x*r_z-4*pow(c,3)*e*r_x*r_z
+                         +4*a*b_y*f*i*r_z-4*b*b_x*f*i*r_z+4*b_x*c*e*i*r_z
+                         -4*b*b_y*c*i*r_z-4*a*b_z*pow(f,2)*r_z+4*a*b_y*e*f*r_z
+                         -4*b*b_x*e*f*r_z+8*b*b_z*c*f*r_z+4*pow(a,2)*b_y*f*r_z
+                         -4*a*b*b_x*f*r_z+4*b_x*c*pow(e,2)*r_z-4*a*b_z*pow(e,2)*r_z
+                         -4*b_z*pow(c,2)*e*r_z-4*b*b_y*c*e*r_z+4*a*b_x*c*e*r_z
+                         +4*pow(b,2)*b_z*e*r_z-4*pow(a,2)*b_z*e*r_z-4*a*b*b_y*c*r_z
+                         +4*a*pow(b,2)*b_z*r_z-2*a*e*pow(i,2)*pow(r_y,2)+2*pow(b,2)*pow(i,2)*pow(r_y,2)
+                         +2*a*pow(f,2)*i*pow(r_y,2)-4*b*c*f*i*pow(r_y,2)+2*pow(c,2)*e*i*pow(r_y,2)
+                         -2*pow(a,2)*e*i*pow(r_y,2)+2*a*pow(b,2)*i*pow(r_y,2)+2*pow(a,2)*pow(f,2)*pow(r_y,2)
+                         -4*a*b*c*f*pow(r_y,2)+2*a*pow(c,2)*e*pow(r_y,2)+4*a*b*e*i*r_x*r_y
+                         -4*pow(b,3)*i*r_x*r_y-4*a*b*pow(f,2)*r_x*r_y+8*pow(b,2)*c*f*r_x*r_y
+                         -4*b*pow(c,2)*e*r_x*r_y-4*a*b_y*pow(i,2)*r_y+4*b*b_x*pow(i,2)*r_y
+                         -4*b_x*c*f*i*r_y+4*a*b_z*f*i*r_y+4*b*b_x*e*i*r_y
+                         +4*b_y*pow(c,2)*i*r_y-4*b*b_z*c*i*r_y-4*pow(b,2)*b_y*i*r_y
+                         -4*pow(a,2)*b_y*i*r_y+4*a*b*b_x*i*r_y-4*a*b_y*pow(f,2)*r_y
+                         -4*b_x*c*e*f*r_y+4*a*b_z*e*f*r_y+8*b*b_y*c*f*r_y
+                         -4*a*b_x*c*f*r_y+4*pow(a,2)*b_z*f*r_y-4*b*b_z*c*e*r_y
+                         +4*a*b_y*pow(c,2)*r_y-4*a*b*b_z*c*r_y-2*a*e*pow(i,2)*pow(r_x,2)
+                         +2*pow(b,2)*pow(i,2)*pow(r_x,2)+2*a*pow(f,2)*i*pow(r_x,2)-4*b*c*f*i*pow(r_x,2)
+                         -2*a*pow(e,2)*i*pow(r_x,2)+2*pow(c,2)*e*i*pow(r_x,2)+2*pow(b,2)*e*i*pow(r_x,2)
+                         +2*a*e*pow(f,2)*pow(r_x,2)-4*b*c*e*f*pow(r_x,2)+2*pow(c,2)*pow(e,2)*pow(r_x,2)
+                         -4*b_x*e*pow(i,2)*r_x+4*b*b_y*pow(i,2)*r_x+4*b_x*pow(f,2)*i*r_x
+                         -4*b_y*c*f*i*r_x-4*b*b_z*f*i*r_x-4*b_x*pow(e,2)*i*r_x
+                         +4*b_z*c*e*i*r_x+4*b*b_y*e*i*r_x+4*a*b*b_y*i*r_x
+                         -4*pow(b,2)*b_x*i*r_x+4*b_x*e*pow(f,2)*r_x-4*b_y*c*e*f*r_x
+                         -4*b*b_z*e*f*r_x-4*a*b_y*c*f*r_x+8*b*b_x*c*f*r_x
+                         -4*a*b*b_z*f*r_x+4*b_z*c*pow(e,2)*r_x-4*b_x*pow(c,2)*e*r_x
+                         +4*a*b_z*c*e*r_x-2*M_0*e*pow(i,2)+2*pow(b_y,2)*pow(i,2)+2*pow(b_x,2)*pow(i,2)
+                         -2*M_0*a*pow(i,2)+2*M_0*pow(f,2)*i-4*b_y*b_z*f*i-2*M_0*pow(e,2)*i
+                         +2*pow(b_z,2)*e*i+2*pow(b_y,2)*e*i+8*pow(b_x,2)*e*i-8*M_0*a*e*i
+                         +2*M_0*pow(c,2)*i-4*b_x*b_z*c*i+2*a*pow(b_z,2)*i+8*a*pow(b_y,2)*i
+                         -12*b*b_x*b_y*i+2*a*pow(b_x,2)*i+4*M_0*pow(b,2)*i-2*M_0*pow(a,2)*i
+                         +2*M_0*e*pow(f,2)-4*pow(b_x,2)*pow(f,2)+4*M_0*a*pow(f,2)-4*b_y*b_z*e*f
+                         +8*b_x*b_y*c*f-4*M_0*b*c*f-12*a*b_y*b_z*f
+                         +8*b*b_x*b_z*f+2*pow(b_z,2)*pow(e,2)+2*pow(b_x,2)*pow(e,2)-2*M_0*a*pow(e,2)
+                         +4*M_0*pow(c,2)*e-12*b_x*b_z*c*e+8*a*pow(b_z,2)*e+2*a*pow(b_y,2)*e
+                         -4*b*b_x*b_y*e+2*a*pow(b_x,2)*e+2*M_0*pow(b,2)*e-2*M_0*pow(a,2)*e
+                         -4*pow(b_y,2)*pow(c,2)+2*M_0*a*pow(c,2)+8*b*b_y*b_z*c-4*a*b_x*b_z*c
+                         -4*pow(b,2)*pow(b_z,2)+2*pow(a,2)*pow(b_z,2)+2*pow(a,2)*pow(b_y,2)-4*a*b*b_x*b_y
+                         +2*M_0*a*pow(b,2);
+  const G4double power_2 = pow(e,2)*i*pow(r_z,2)+4*a*e*i*pow(r_z,2)-2*pow(b,2)*i*pow(r_z,2)+pow(a,2)*i*pow(r_z,2)-e*pow(f,2)*pow(r_z,2)
+                  -4*a*pow(f,2)*pow(r_z,2)+6*b*c*f*pow(r_z,2)-4*pow(c,2)*e*pow(r_z,2)-a*pow(c,2)*pow(r_z,2)
+                  -2*e*f*i*r_y*r_z-2*b*c*i*r_y*r_z+2*pow(f,3)*r_y*r_z
+                  +2*pow(c,2)*f*r_y*r_z+2*pow(b,2)*f*r_y*r_z+2*pow(a,2)*f*r_y*r_z
+                  -2*b*c*e*r_y*r_z-2*a*b*c*r_y*r_z-2*b*f*i*r_x*r_z
+                  -2*a*c*i*r_x*r_z+2*c*pow(f,2)*r_x*r_z-2*b*e*f*r_x*r_z
+                  -2*a*b*f*r_x*r_z+2*c*pow(e,2)*r_x*r_z+2*pow(c,3)*r_x*r_z
+                  +2*pow(b,2)*c*r_x*r_z-2*b_y*f*i*r_z-2*b_x*c*i*r_z+2*b_z*pow(f,2)*r_z
+                  -2*b_y*e*f*r_z-8*a*b_y*f*r_z+6*b*b_x*f*r_z+2*b_z*pow(e,2)*r_z
+                  -8*b_x*c*e*r_z+8*a*b_z*e*r_z+2*b_z*pow(c,2)*r_z+6*b*b_y*c*r_z
+                  -2*a*b_x*c*r_z-4*pow(b,2)*b_z*r_z+2*pow(a,2)*b_z*r_z+e*pow(i,2)*pow(r_y,2)
+                  -pow(f,2)*i*pow(r_y,2)+4*a*e*i*pow(r_y,2)-4*pow(b,2)*i*pow(r_y,2)-4*a*pow(f,2)*pow(r_y,2)
+                  +6*b*c*f*pow(r_y,2)-2*pow(c,2)*e*pow(r_y,2)+pow(a,2)*e*pow(r_y,2)-a*pow(b,2)*pow(r_y,2)
+                  +2*b*pow(i,2)*r_x*r_y-2*c*f*i*r_x*r_y+2*b*pow(f,2)*r_x*r_y
+                  -2*c*e*f*r_x*r_y-2*a*c*f*r_x*r_y-2*a*b*e*r_x*r_y
+                  +2*b*pow(c,2)*r_x*r_y+2*pow(b,3)*r_x*r_y+2*b_y*pow(i,2)*r_y-2*b_z*f*i*r_y
+                  +8*a*b_y*i*r_y-8*b*b_x*i*r_y+2*b_y*pow(f,2)*r_y-2*b_z*e*f*r_y
+                  +6*b_x*c*f*r_y-8*a*b_z*f*r_y-2*b*b_x*e*r_y-4*b_y*pow(c,2)*r_y
+                  +6*b*b_z*c*r_y+2*pow(b,2)*b_y*r_y+2*pow(a,2)*b_y*r_y-2*a*b*b_x*r_y
+                  +a*pow(i,2)*pow(r_x,2)+4*a*e*i*pow(r_x,2)-pow(c,2)*i*pow(r_x,2)-4*pow(b,2)*i*pow(r_x,2)
+                  -2*a*pow(f,2)*pow(r_x,2)+6*b*c*f*pow(r_x,2)+a*pow(e,2)*pow(r_x,2)-4*pow(c,2)*e*pow(r_x,2)
+                  -pow(b,2)*e*pow(r_x,2)+2*b_x*pow(i,2)*r_x+8*b_x*e*i*r_x-2*b_z*c*i*r_x
+                  -8*b*b_y*i*r_x-4*b_x*pow(f,2)*r_x+6*b_y*c*f*r_x+6*b*b_z*f*r_x
+                  +2*b_x*pow(e,2)*r_x-8*b_z*c*e*r_x-2*b*b_y*e*r_x+2*b_x*pow(c,2)*r_x
+                  -2*a*b_z*c*r_x-2*a*b*b_y*r_x+2*pow(b,2)*b_x*r_x+M_0*pow(i,2)+4*M_0*e*i
+                  -pow(b_z,2)*i-4*pow(b_y,2)*i-4*pow(b_x,2)*i+4*M_0*a*i-2*M_0*pow(f,2)+6*b_y*b_z*f
+                  +M_0*pow(e,2)-4*pow(b_z,2)*e-pow(b_y,2)*e-4*pow(b_x,2)*e+4*M_0*a*e-2*M_0*pow(c,2)
+                  +6*b_x*b_z*c-4*a*pow(b_z,2)-4*a*pow(b_y,2)+6*b*b_x*b_y-a*pow(b_x,2)
+                  -2*M_0*pow(b,2)+M_0*pow(a,2);
+  const G4double power_1 = (-2*e*i*pow(r_z,2))-2*a*i*pow(r_z,2)+2*pow(f,2)*pow(r_z,2)+2*pow(c,2)*pow(r_z,2)-4*a*f*r_y*r_z
+                     +4*b*c*r_y*r_z+4*b*f*r_x*r_z-4*c*e*r_x*r_z+4*b_y*f*r_z
+                     -4*b_z*e*r_z+4*b_x*c*r_z-4*a*b_z*r_z-2*e*i*pow(r_y,2)
+                     +2*pow(f,2)*pow(r_y,2)-2*a*e*pow(r_y,2)+2*pow(b,2)*pow(r_y,2)-4*b*i*r_x*r_y
+                     +4*c*f*r_x*r_y-4*b_y*i*r_y+4*b_z*f*r_y-4*a*b_y*r_y
+                     +4*b*b_x*r_y-2*a*i*pow(r_x,2)-2*a*e*pow(r_x,2)+2*pow(c,2)*pow(r_x,2)
+                     +2*pow(b,2)*pow(r_x,2)-4*b_x*i*r_x-4*b_x*e*r_x+4*b_z*c*r_x
+                     +4*b*b_y*r_x-2*M_0*i-2*M_0*e+2*pow(b_z,2)+2*pow(b_y,2)+2*pow(b_x,2)
+                     -2*M_0*a;
+  const G4double power_0 = i*pow(r_z,2)+2*f*r_y*r_z+2*c*r_x*r_z+2*b_z*r_z+e*pow(r_y,2)+2*b*r_x*r_y+2*b_y*r_y
+                        +a*pow(r_x,2)+2*b_x*r_x+M_0;
   const std::vector<G4double> coefficients {power_6, power_5, power_4, power_3, power_2, power_1, power_0};
   // With this method, you get also get roots at singular value of the determinant, can do an if to check
   const std::vector<G4double> lambdas = polysolve.SolvePolynomial(coefficients);
