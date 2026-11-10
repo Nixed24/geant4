@@ -13,10 +13,18 @@ class G4HalfQuadric : public G4HalfSurface {
     static G4RotationMatrix _T(const G4RotationMatrix & M);
     std::vector<G4ThreeVector> GetLMContourIntersections(const G4ThreeVector& p) const;
 
-    G4RotationMatrix Q;
+    G4RotationMatrix Q; // Default constructor of G4RotationMatrix gives 3x3 identity
     G4ThreeVector P;
-    G4double R;
+    G4double R {-1}; // R = -1 gives a unit sphere at the origin
   public:
+
+    G4RotationMatrix get_Q() const;
+    G4ThreeVector get_P() const;
+    G4double get_R() const;
+    void set_Q(const G4RotationMatrix& new_Q);
+    void set_P(const G4ThreeVector& new_P);
+    void set_R(G4double new_R);
+
     G4HalfQuadric() = default;
     ~G4HalfQuadric() override = default;
 

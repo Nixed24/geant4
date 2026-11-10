@@ -306,6 +306,31 @@ pow(a,2)*pow(e,2)*i*pow(r_z,2)-2*a*pow(b,2)*e*i*pow(r_z,2)+pow(b,4)*i*pow(r_z,2)
   return candidate_points;
 }
 
+G4RotationMatrix G4HalfQuadric::get_Q() const
+{
+  return this->Q;
+}
+G4ThreeVector G4HalfQuadric::get_P() const
+{
+  return this->P;
+}
+G4double G4HalfQuadric::get_R() const
+{
+  return this->R;
+}
+void G4HalfQuadric::set_Q(const G4RotationMatrix& new_Q)
+{
+  this->Q = new_Q;
+}
+void G4HalfQuadric::set_P(const G4ThreeVector& new_P)
+{
+  this->P = new_P;
+}
+void G4HalfQuadric::set_R(G4double new_R)
+{
+  this->R = new_R;
+}
+
 G4double G4HalfQuadric::ImplicitFunction(const G4ThreeVector& p) const
 {
   // x_T Q x + P dot x + R
