@@ -11,12 +11,18 @@ class G4HalfPlane : public G4HalfSurface
 
 public:
     G4HalfPlane(const G4ThreeVector& normal, const G4double& distance);
+
     G4double ImplicitFunction(const G4ThreeVector& p) const override;
 
-    G4ThreeVector SurfaceNormal(const G4ThreeVector& /*p*/) const override {return normal;}
+    std::vector<G4ThreeVector> RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v) const override;
 
     G4double DistanceToSurface(const G4ThreeVector& p) const override;
     G4double DistanceToSurface(const G4ThreeVector& p, const G4ThreeVector& v) const override;
+
+    G4ThreeVector ClosestSurfacePoint(const G4ThreeVector& p) const override;
+    G4ThreeVector SurfaceNormal(const G4ThreeVector& /*p*/) const override {return normal;}
+
+    void Transform(const G4AffineTransform& t) override;
 };
 
 #endif
