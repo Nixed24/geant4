@@ -49,7 +49,7 @@ G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector& p) const
 
 
 void G4HalfIntersectionSolid::GetPotentialRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
-    std::vector<RayHit>& hits, const G4bool keepOnlySolidIntersections) const
+    std::vector<RayHit>& hits, const G4bool keepOnlySolidHits) const
 {
     if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
 
@@ -61,8 +61,8 @@ void G4HalfIntersectionSolid::GetPotentialRayIntersections(const G4ThreeVector& 
 
         for (const G4ThreeVector& intersection : s->RayIntersection(p,vUnit))
         {
-            if (keepOnlySolidIntersections && this->Inside(intersection) != kSurface) continue;
-            
+            if (keepOnlySolidHits && this->Inside(intersection) != kSurface) continue;
+
             RayHit hit;
             hit.intersection = intersection;
             hit.distance = (intersection - p).dot(vUnit);
@@ -196,20 +196,22 @@ G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p) const
 
 void G4HalfIntersectionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const
 {
-    G4bool onSurface = this->Inside(p) == kSurface;
+    const G4bool onSolid = this->Inside(p) == kSurface;
+    if (not onSolid)
+        throw std::logic_error("G4HalfIntersectionSolid::GetOnSurfaceNormal: Point passed in is not on the surface.");
 
     for (const G4HalfSurface* s : intersectionSurfaces_)
     {
-        if (s->Inside(p) == kSurface && this->Inside(p) == kSurface)
+        if (s->Inside(p) == kSurface)
         {
-            norm = (onSurface) ? s->SurfaceNormal(p) : s->SurfaceNormal(s->ClosestSurfacePoint(p));
+            norm = (onSolid) ? s->SurfaceNormal(p) : s->SurfaceNormal(s->ClosestSurfacePoint(p));
         }
     }
     for (const G4HalfSurface* s : subtractionSurfaces_)
     {
-        if (s->Inside(p) == kSurface && this->Inside(p) == kSurface)
+        if (s->Inside(p) == kSurface)
         {
-            norm = (onSurface) ? -s->SurfaceNormal(p) : -s->SurfaceNormal(s->ClosestSurfacePoint(p));
+            norm = (onSolid) ? -s->SurfaceNormal(p) : -s->SurfaceNormal(s->ClosestSurfacePoint(p));
         }
     }
 }

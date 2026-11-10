@@ -11,6 +11,9 @@ class G4HalfUnionSolid : public G4HalfSolid
     std::vector<G4HalfSolid*> intersectionSolids_;
     std::vector<G4HalfSolid*> subtractionSolids_;
 
+protected:
+    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const override;
+
 public:
     using G4HalfSolid::DistanceToIn;
     using G4HalfSolid::DistanceToOut;
@@ -40,7 +43,6 @@ public:
     void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
         std::vector<RayHit>&, const G4bool) const override;
 
-    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const override;
 
     /*
      * Calculates shortest distance to the inside of the solid.

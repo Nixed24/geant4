@@ -43,16 +43,16 @@ G4double G4HalfUnionSolid::ImplicitFunction(const G4ThreeVector& p) const
 }
 
 void G4HalfUnionSolid::GetPotentialRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
-    std::vector<RayHit>& hits, const G4bool keepOnlySolidIntersections) const
+    std::vector<RayHit>& hits, const G4bool keepOnlySolidHits) const
 {
     if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude unit vector");
     G4ThreeVector vUnit = v.unit();
 
     for (const G4HalfSolid* solid : intersectionSolids_)
-        solid->GetPotentialRayIntersections(p, vUnit, hits, keepOnlySolidIntersections);
+        solid->GetPotentialRayIntersections(p, vUnit, hits, keepOnlySolidHits);
 
     for (const G4HalfSolid* s : subtractionSolids_)
-        s->GetPotentialRayIntersections(p, vUnit, hits, keepOnlySolidIntersections);
+        s->GetPotentialRayIntersections(p, vUnit, hits, keepOnlySolidHits);
 
     std::sort(hits.begin(), hits.end(),
             [](const RayHit& a, const RayHit& b)
@@ -63,16 +63,21 @@ void G4HalfUnionSolid::GetPotentialRayIntersections(const G4ThreeVector& p, cons
 
 void G4HalfUnionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const
 {
+    const G4bool onSolid = this->Inside(p) == kSurface;
+
+    if (not onSolid)
+        throw std::logic_error("G4HalfIntersectionSolid::GetOnSurfaceNormal: Point passed in is not on the surface.");
+
     for (const G4HalfSolid* solid : intersectionSolids_)
     {
-        if (solid->Inside(p) == kSurface && this->Inside(p) == kSurface)
+        if (solid->Inside(p) == kSurface)
         {
             norm = solid->SurfaceNormal(p);
         }
     }
     for (const G4HalfSolid* solid : subtractionSolids_)
     {
-        if (solid->Inside(p) == kSurface && this->Inside(p) == kSurface)
+        if (solid->Inside(p) == kSurface)
         {
             norm = -solid->SurfaceNormal(p);
         }

@@ -11,6 +11,9 @@ class G4HalfIntersectionSolid : public G4HalfSolid
     std::vector<G4HalfSurface*> intersectionSurfaces_;
     std::vector<G4HalfSurface*> subtractionSurfaces_;
 
+protected:
+    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
+
 public:
     using G4HalfSolid::DistanceToIn;
     using G4HalfSolid::DistanceToOut;
@@ -28,7 +31,6 @@ public:
     void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
         std::vector<RayHit>&, const G4bool) const override;
 
-    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
 
     G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const override;
     G4double DistanceToIn(const G4ThreeVector& p) const override;

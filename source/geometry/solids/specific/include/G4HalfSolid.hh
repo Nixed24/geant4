@@ -15,6 +15,8 @@ protected:
         G4double distance;
     };
 
+    virtual void GetOnSurfaceNormal(const G4ThreeVector&, G4ThreeVector&) const = 0;
+
 public:
     G4HalfSolid(const G4String& name) : G4VSolid(name) {};
 
@@ -38,8 +40,6 @@ public:
     // Calculates shortest distance from a point, passes normal by reference
     virtual G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const = 0;
     virtual G4double DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const = 0;
-
-    virtual void GetOnSurfaceNormal(const G4ThreeVector&, G4ThreeVector&) const = 0;
 
     // Can be implemented in the base class if the derived classes have a defined GetRayIntersection
     G4double DistanceToIn(const G4ThreeVector&, const G4ThreeVector&) const override;
