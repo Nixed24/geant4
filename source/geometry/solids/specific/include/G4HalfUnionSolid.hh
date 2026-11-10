@@ -37,7 +37,8 @@ public:
 
     G4double ImplicitFunction(const G4ThreeVector &p) const override;
 
-    void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const override;
+    void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
+        std::vector<RayHit>&, const G4bool) const override;
 
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const override;
 

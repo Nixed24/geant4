@@ -26,7 +26,7 @@ public:
 
     // --- Inherited functions ---
     void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
-        std::vector<RayHit>&) const override;
+        std::vector<RayHit>&, const G4bool) const override;
 
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
 

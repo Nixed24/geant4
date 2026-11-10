@@ -35,16 +35,13 @@ void G4HalfSolid::GetSolidRayIntersections(const G4ThreeVector& p, const G4Three
     };
 
     if (rayHits.empty() && !modifyRayHits)
-    {
-        this->GetPotentialRayIntersections(p, v, rayHits);
-    }
+        this->GetPotentialRayIntersections(p, v, rayHits, true);
 
     if (rayHits.empty() && modifyRayHits)
-    {
-        throw std::logic_error("G4HalfSolid::GetSolidRayIntersections: rayHits are empty, but modifyRayHits was set to true.");
-    }
+        throw std::logic_error("G4HalfSolid::GetSolidRayIntersections: rayHits is empty, but modifyRayHits was set to true.");
 
-    rayHits.erase(std::remove_if(rayHits.begin(), rayHits.end(), isNotOnSurface),rayHits.end());
+    if (!rayHits.empty() && modifyRayHits)
+        rayHits.erase(std::remove_if(rayHits.begin(), rayHits.end(), isNotOnSurface),rayHits.end());
 }
 
 G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const

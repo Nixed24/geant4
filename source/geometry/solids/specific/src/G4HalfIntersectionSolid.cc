@@ -49,18 +49,20 @@ G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector& p) const
 
 
 void G4HalfIntersectionSolid::GetPotentialRayIntersections(const G4ThreeVector& p, const G4ThreeVector& v,
-    std::vector<RayHit>& hits) const
+    std::vector<RayHit>& hits, const G4bool keepOnlySolidIntersections) const
 {
     if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude directional vector.");
 
     G4ThreeVector vUnit = v.unit();
 
-    auto getHits = [&p, &vUnit](const G4HalfSurface* s, const G4bool subtraction)
+    auto getHits = [&](const G4HalfSurface* s, const G4bool subtraction)
     {
         std::vector<RayHit> surfaceHits;
 
         for (const G4ThreeVector& intersection : s->RayIntersection(p,vUnit))
         {
+            if (keepOnlySolidIntersections && this->Inside(intersection) != kSurface) continue;
+            
             RayHit hit;
             hit.intersection = intersection;
             hit.distance = (intersection - p).dot(vUnit);
