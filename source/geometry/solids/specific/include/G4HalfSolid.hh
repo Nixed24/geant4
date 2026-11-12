@@ -34,6 +34,8 @@ public:
 
     EInside Inside(const G4ThreeVector&) const override;
 
+    virtual G4double SignedDistance(const G4ThreeVector&, G4ThreeVector*, const G4bool) const = 0;
+
     using G4VSolid::DistanceToOut;
     using G4VSolid::DistanceToIn;
 

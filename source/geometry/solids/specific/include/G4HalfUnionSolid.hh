@@ -43,6 +43,7 @@ public:
     void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
         std::vector<RayHit>&, const G4bool) const override;
 
+    G4double SignedDistance(const G4ThreeVector& p, G4ThreeVector* n, const G4bool calcNorm) const override;
 
     /*
      * Calculates shortest distance to the inside of the solid.

@@ -80,31 +80,26 @@ void G4HalfUnionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector&
     }
 }
 
-G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
+G4double G4HalfUnionSolid::SignedDistance(const G4ThreeVector& p, G4ThreeVector* n, const G4bool calcNorm) const
 {
     struct CandidateSolid
     {
-        G4double distance = kInfinity;
-        const G4HalfSolid* solid = nullptr;
-        G4int normSign = +1;
+        G4double signedDistance = kInfinity;
+        G4ThreeVector norm;
+        G4int normSign;
     };
-
-    if (this->Inside(p) == kInside) return 0;
-    if (this->Inside(p) == kSurface)
-    {
-        GetOnSurfaceNormal(p, *n);
-        return 0;
-    }
 
     auto setCandidate = [&](const std::vector<std::unique_ptr<G4HalfSolid>>& solidList, const G4int sign, CandidateSolid& best)
     {
         for (const auto &solid : solidList)
         {
-            G4double candidateDistance = solid->DistanceToIn(p);
+            CandidateSolid candidate;
+            candidate.normSign = sign;
+            candidate.signedDistance = solid->SignedDistance(p, &candidate.norm, calcNorm);
 
-            if (candidateDistance < best.distance)
+            if (candidate.signedDistance < best.signedDistance)
             {
-                best = {candidateDistance, solid.get(), sign};
+                best = candidate;
             }
         }
     };
@@ -116,12 +111,16 @@ G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool cal
 
     if (calcNorm && n != nullptr)
     {
-        *n = (intersectionCandidate.distance > -subtractionCandidate.distance)
-            ? intersectionCandidate.solid->SurfaceNormal(p)
-            : -subtractionCandidate.solid->SurfaceNormal(p);
+        *n = (intersectionCandidate.signedDistance > -subtractionCandidate.signedDistance)
+        ? intersectionCandidate.norm : subtractionCandidate.norm;
     }
 
-    return std::max(intersectionCandidate.distance, -subtractionCandidate.distance);
+    return std::max(intersectionCandidate.signedDistance, -subtractionCandidate.signedDistance);
+}
+
+G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
+{
+    return std::min(0.0, this->SignedDistance(p, n, calcNorm));
 }
 
 
@@ -133,47 +132,7 @@ G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p) const
 
 G4double G4HalfUnionSolid::DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
-    struct CandidateSolid
-    {
-        G4double distance = kInfinity;
-        const G4HalfSolid* solid = nullptr;
-        G4int normSign = +1;
-    };
-
-    if (this->Inside(p) == kInside) return 0;
-    if (this->Inside(p) == kSurface)
-    {
-        GetOnSurfaceNormal(p, *n);
-        return 0;
-    }
-
-
-    auto setCandidate = [&](const std::vector<std::unique_ptr<G4HalfSolid>>& solidList, const G4int sign, CandidateSolid& best)
-    {
-        for (const auto &solid: solidList)
-        {
-            G4double candidateDistance = solid->DistanceToIn(p);
-
-            if (candidateDistance < best.distance)
-            {
-                best = {candidateDistance, solid.get(), sign};
-            }
-        }
-    };
-
-    CandidateSolid intersectionCandidate, subtractionCandidate;
-
-    setCandidate(intersectionSolids_, +1, intersectionCandidate);
-    setCandidate(subtractionSolids_, -1, subtractionCandidate);
-
-    if (calcNorm && n != nullptr)
-    {
-        *n = (intersectionCandidate.distance > -subtractionCandidate.distance)
-            ? intersectionCandidate.solid->SurfaceNormal(p)
-            : -subtractionCandidate.solid->SurfaceNormal(p);
-    }
-
-    return std::max(intersectionCandidate.distance, -subtractionCandidate.distance);
+   return DistanceToOut(p, calcNorm, n);
 }
 
 

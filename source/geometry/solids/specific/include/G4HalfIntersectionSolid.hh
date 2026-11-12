@@ -32,6 +32,7 @@ public:
     void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
         std::vector<RayHit>&, const G4bool) const override;
 
+    G4double SignedDistance(const G4ThreeVector&, G4ThreeVector*, const G4bool) const override;
 
     G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const override;
     G4double DistanceToIn(const G4ThreeVector& p) const override;
