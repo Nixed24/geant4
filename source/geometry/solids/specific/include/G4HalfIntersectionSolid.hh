@@ -4,12 +4,13 @@
 #include "G4HalfSurface.hh"
 #include "G4HalfSolid.hh"
 #include <vector>
+#include <memory>
 #include "G4VSolid.hh"
 
 class G4HalfIntersectionSolid : public G4HalfSolid
 {
-    std::vector<G4HalfSurface*> intersectionSurfaces_;
-    std::vector<G4HalfSurface*> subtractionSurfaces_;
+    std::vector<std::unique_ptr<G4HalfSurface>> intersectionSurfaces_;
+    std::vector<std::unique_ptr<G4HalfSurface>> subtractionSurfaces_;
 
 protected:
     void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
@@ -18,12 +19,12 @@ public:
     using G4HalfSolid::DistanceToIn;
     using G4HalfSolid::DistanceToOut;
 
-    G4HalfIntersectionSolid(const std::vector<G4HalfSurface*>& intersectionSurfaces,
-                            const std::vector<G4HalfSurface*>& subtractionSurfaces,
+    G4HalfIntersectionSolid(std::vector<std::unique_ptr<G4HalfSurface>> intersectionSurfaces,
+                            std::vector<std::unique_ptr<G4HalfSurface>> subtractionSurfaces,
                             const G4String& name = "G4HalfIntersectionSolid");
 
-    void AddIntersectionSurface(G4HalfSurface& s);
-    void AddSubtractionSurface(G4HalfSurface& s);
+    void AddIntersectionSurface(std::unique_ptr<G4HalfSurface> s);
+    void AddSubtractionSurface(std::unique_ptr<G4HalfSurface> s);
 
     G4double ImplicitFunction(const G4ThreeVector &p) const override;
 

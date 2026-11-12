@@ -7,38 +7,38 @@
 
 const G4ThreeVector ORIGIN = {0,0,0};
 
-G4HalfIntersectionSolid::G4HalfIntersectionSolid(const std::vector<G4HalfSurface*>& intersectionSurfaces,
-                                                 const std::vector<G4HalfSurface*>& subtractionSurfaces,
+G4HalfIntersectionSolid::G4HalfIntersectionSolid(std::vector<std::unique_ptr<G4HalfSurface>> intersectionSurfaces,
+                                                 std::vector<std::unique_ptr<G4HalfSurface>> subtractionSurfaces,
                                                  const G4String& name)
                                                      :  G4HalfSolid(name),
-                                                        intersectionSurfaces_(intersectionSurfaces),
-                                                        subtractionSurfaces_(subtractionSurfaces)
+                                                        intersectionSurfaces_(std::move(intersectionSurfaces)),
+                                                        subtractionSurfaces_(std::move(subtractionSurfaces))
 
 {
 }
 
 
-void G4HalfIntersectionSolid::AddIntersectionSurface(G4HalfSurface& s)
+void G4HalfIntersectionSolid::AddIntersectionSurface(std::unique_ptr<G4HalfSurface> s)
 {
-    intersectionSurfaces_.push_back(&s);
+    intersectionSurfaces_.push_back(std::move(s));
 }
 
 
-void G4HalfIntersectionSolid::AddSubtractionSurface(G4HalfSurface& s)
+void G4HalfIntersectionSolid::AddSubtractionSurface(std::unique_ptr<G4HalfSurface> s)
 {
-    subtractionSurfaces_.push_back(&s);
+    subtractionSurfaces_.push_back(std::move(s));
 }
 
-G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector& p) const
+G4double G4HalfIntersectionSolid::ImplicitFunction(const G4ThreeVector &p) const
 {
     G4double implicitFunction = -kInfinity;
 
-    for (const G4HalfSurface* s : intersectionSurfaces_)
+    for (const auto &s : intersectionSurfaces_)
     {
         implicitFunction = std::max(implicitFunction, s->ImplicitFunction(p));
     }
 
-    for (const G4HalfSurface* s : subtractionSurfaces_)
+    for (const auto &s : subtractionSurfaces_)
     {
         implicitFunction = std::max(implicitFunction, -s->ImplicitFunction(p));
     }
@@ -54,7 +54,7 @@ void G4HalfIntersectionSolid::GetPotentialRayIntersections(const G4ThreeVector& 
 
     G4ThreeVector vUnit = v.unit();
 
-    auto getHits = [&](const G4HalfSurface* s, const G4bool subtraction)
+    auto getHits = [&](const std::unique_ptr<G4HalfSurface> &s, const G4bool subtraction)
     {
         std::vector<RayHit> surfaceHits;
 
@@ -65,7 +65,7 @@ void G4HalfIntersectionSolid::GetPotentialRayIntersections(const G4ThreeVector& 
             RayHit hit;
             hit.intersection = intersection;
             hit.distance = (intersection - p).dot(vUnit);
-            hit.targetSurface = s;
+            hit.targetSurface = s.get();
             hit.isSubtraction = subtraction;
 
             surfaceHits.push_back(hit);
@@ -74,13 +74,13 @@ void G4HalfIntersectionSolid::GetPotentialRayIntersections(const G4ThreeVector& 
         return surfaceHits;
     };
 
-    for (const G4HalfSurface* s : intersectionSurfaces_)
+    for (const auto &s : intersectionSurfaces_)
     {
         std::vector<RayHit> intersectionHits = getHits(s, false);
         hits.insert(hits.end(), intersectionHits.begin(), intersectionHits.end());
     }
 
-    for (const G4HalfSurface* s : subtractionSurfaces_)
+    for (const auto &s : subtractionSurfaces_)
     {
         std::vector<RayHit> subtractionHits = getHits(s, true);
         hits.insert(hits.end(), subtractionHits.begin(), subtractionHits.end());
@@ -106,30 +106,30 @@ G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4b
     const G4HalfSurface* candidateSurface = nullptr;
     G4int normSign;
 
-    auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
+    auto setDistance = [&](const std::unique_ptr<G4HalfSurface> &surface, const G4int sign)
     {
         G4double candidateDistance = surface->DistanceToSurface(p);
         if (sign*candidateDistance > distanceToIn)
         {
             distanceToIn = candidateDistance;
-            candidateSurface = surface;
+            candidateSurface = surface.get();
             normSign = sign;
         }
     };
 
-    for (const G4HalfSurface* surface : intersectionSurfaces_)
+    for (const auto &surface : intersectionSurfaces_)
     {
         setDistance(surface, +1);
     }
 
-    for (const G4HalfSurface* surface : subtractionSurfaces_)
+    for (const auto &surface : subtractionSurfaces_)
     {
         setDistance(surface, -1);
     }
 
     if (calcNorm &&  n != nullptr)
     {
-        G4ThreeVector surfacePoint = candidateSurface->ClosestSurfacePoint(p);
+        const G4ThreeVector surfacePoint = candidateSurface->ClosestSurfacePoint(p);
         *n = normSign*candidateSurface->SurfaceNormal(surfacePoint);
     }
 
@@ -156,30 +156,30 @@ G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4
     const G4HalfSurface* candidateSurface = nullptr;
     G4int normSign;
 
-    auto setDistance = [&](const G4HalfSurface* surface, const G4int sign)
+    auto setDistance = [&](const std::unique_ptr<G4HalfSurface> &surface, const G4int sign)
     {
         G4double candidateDistance = surface->DistanceToSurface(p);
         if (sign*candidateDistance > distanceToOut)
         {
             distanceToOut = candidateDistance;
-            candidateSurface = surface;
+            candidateSurface = surface.get();
             normSign = sign;
         }
     };
 
-    for (const G4HalfSurface* surface : intersectionSurfaces_)
+    for (const auto &surface : intersectionSurfaces_)
     {
         setDistance(surface, +1);
     }
 
-    for (const G4HalfSurface* surface : subtractionSurfaces_)
+    for (const auto &surface : subtractionSurfaces_)
     {
         setDistance(surface, -1);
     }
 
     if (calcNorm &&  n != nullptr)
     {
-        G4ThreeVector surfacePoint = candidateSurface->ClosestSurfacePoint(p);
+        const G4ThreeVector surfacePoint = candidateSurface->ClosestSurfacePoint(p);
         *n = normSign*candidateSurface->SurfaceNormal(surfacePoint);
     }
 
@@ -199,14 +199,14 @@ void G4HalfIntersectionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4Three
     if (not onSolid)
         throw std::logic_error("G4HalfIntersectionSolid::GetOnSurfaceNormal: Point passed in is not on the surface.");
 
-    for (const G4HalfSurface* s : intersectionSurfaces_)
+    for (const auto &s : intersectionSurfaces_)
     {
         if (s->Inside(p) == kSurface)
         {
             norm = (onSolid) ? s->SurfaceNormal(p) : s->SurfaceNormal(s->ClosestSurfacePoint(p));
         }
     }
-    for (const G4HalfSurface* s : subtractionSurfaces_)
+    for (const auto &s : subtractionSurfaces_)
     {
         if (s->Inside(p) == kSurface)
         {
@@ -218,9 +218,9 @@ void G4HalfIntersectionSolid::GetOnSurfaceNormal(const G4ThreeVector& p, G4Three
 
 void G4HalfIntersectionSolid::Transform(const G4AffineTransform& t) const
 {
-    for (G4HalfSurface* s : intersectionSurfaces_) s->Transform(t);
+    for (auto &s : intersectionSurfaces_) s->Transform(t);
 
-    for (G4HalfSurface* s : subtractionSurfaces_) s->Transform(t);
+    for (auto &s : subtractionSurfaces_) s->Transform(t);
 }
 
 
@@ -244,14 +244,14 @@ std::ostream& G4HalfIntersectionSolid::StreamInfo(std::ostream& os) const
 {
     os << "--- Half Intersection Solid: " << GetName() << " ---" << std::endl;
     os << "Surface Intersections: " << std::endl;
-    for (const G4HalfSurface* s : intersectionSurfaces_)
+    for (const auto &s : intersectionSurfaces_)
     {
-        os << s << std::endl;
+        s->StreamInfo(os);
     }
     os << "Surface Subtractions: " << std::endl;
-    for (const G4HalfSurface* s : subtractionSurfaces_)
+    for (const auto &s : subtractionSurfaces_)
     {
-        os << s << std::endl;
+        s->StreamInfo(os);
     }
     return os;
 }
