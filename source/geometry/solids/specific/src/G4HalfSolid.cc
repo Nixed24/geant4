@@ -58,8 +58,8 @@ G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& 
 
     for (auto &hit : rayHits)
     {
-        const G4ThreeVector before = hit.intersection - v*kCarTolerance;
-        const G4ThreeVector after = hit.intersection + v*kCarTolerance;
+        const G4ThreeVector before = hit.intersection - vUnit*kCarTolerance*2;
+        const G4ThreeVector after = hit.intersection + vUnit*kCarTolerance*2;
 
         if (this->Inside(before) == kOutside && this->Inside(after) == kInside)
             return hit.distance;
@@ -84,18 +84,21 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
 
     for (auto &hit : rayHits)
     {
-        const G4ThreeVector before = hit.intersection - v*kCarTolerance;
-        const G4ThreeVector after = hit.intersection + v*kCarTolerance;
+        const G4ThreeVector before = hit.intersection - vUnit*kCarTolerance*2;
+        const G4ThreeVector after = hit.intersection + vUnit*kCarTolerance*2;
 
-        if (calcNorm && n != nullptr)
-        {
-            *n = (hit.isSubtraction) ? -hit.targetSurface->SurfaceNormal(hit.intersection)
-                                     : hit.targetSurface->SurfaceNormal(hit.intersection);
-            if (validNorm != nullptr) *validNorm = true;
-        }
 
         if (this->Inside(before) == kInside && this->Inside(after) == kOutside)
+        {
+
+            if (calcNorm && n != nullptr)
+            {
+                *n = (hit.isSubtraction) ? -hit.targetSurface->SurfaceNormal(hit.intersection)
+                                         : hit.targetSurface->SurfaceNormal(hit.intersection);
+                if (validNorm != nullptr) *validNorm = true;
+            }
             return hit.distance;
+        }
     }
 
     return kInfinity;
