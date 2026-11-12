@@ -56,9 +56,16 @@ G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& 
 
     GetSolidRayIntersections(p, vUnit, rayHits, false);
 
-    if (rayHits.empty()) return kInfinity;
+    for (auto &hit : rayHits)
+    {
+        const G4ThreeVector before = hit.intersection - v*kCarTolerance;
+        const G4ThreeVector after = hit.intersection + v*kCarTolerance;
 
-    return rayHits[0].distance;
+        if (this->Inside(before) == kOutside && this->Inside(after) == kInside)
+            return hit.distance;
+    }
+
+    return kInfinity;
 }
 
 G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
@@ -75,19 +82,20 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
 
     GetSolidRayIntersections(p, vUnit, rayHits, false);
 
-    for (const RayHit& hit : rayHits)
+    for (auto &hit : rayHits)
     {
-        if (this->Inside(hit.intersection) == kSurface)
-        {
-            if (calcNorm && n != nullptr)
-            {
-                *n = (hit.isSubtraction) ? -hit.targetSurface->SurfaceNormal(hit.intersection)
-                                         : hit.targetSurface->SurfaceNormal(hit.intersection);
-                if (validNorm != nullptr) *validNorm = true;
-            }
+        const G4ThreeVector before = hit.intersection - v*kCarTolerance;
+        const G4ThreeVector after = hit.intersection + v*kCarTolerance;
 
-            return std::abs(hit.distance);
+        if (calcNorm && n != nullptr)
+        {
+            *n = (hit.isSubtraction) ? -hit.targetSurface->SurfaceNormal(hit.intersection)
+                                     : hit.targetSurface->SurfaceNormal(hit.intersection);
+            if (validNorm != nullptr) *validNorm = true;
         }
+
+        if (this->Inside(before) == kInside && this->Inside(after) == kOutside)
+            return hit.distance;
     }
 
     return kInfinity;
