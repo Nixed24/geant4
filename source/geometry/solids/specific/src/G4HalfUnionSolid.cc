@@ -86,15 +86,13 @@ G4double G4HalfUnionSolid::SignedDistance(const G4ThreeVector& p, G4ThreeVector*
     {
         G4double signedDistance = kInfinity;
         G4ThreeVector norm;
-        G4int normSign;
     };
 
-    auto setCandidate = [&](const std::vector<std::unique_ptr<G4HalfSolid>>& solidList, const G4int sign, CandidateSolid& best)
+    auto setCandidate = [&](const std::vector<std::unique_ptr<G4HalfSolid>>& solidList, CandidateSolid& best)
     {
         for (const auto &solid : solidList)
         {
             CandidateSolid candidate;
-            candidate.normSign = sign;
             candidate.signedDistance = solid->SignedDistance(p, &candidate.norm, calcNorm);
 
             if (candidate.signedDistance < best.signedDistance)
@@ -106,13 +104,13 @@ G4double G4HalfUnionSolid::SignedDistance(const G4ThreeVector& p, G4ThreeVector*
 
     CandidateSolid intersectionCandidate, subtractionCandidate;
 
-    setCandidate(intersectionSolids_, +1, intersectionCandidate);
-    setCandidate(subtractionSolids_, -1, subtractionCandidate);
+    setCandidate(intersectionSolids_, intersectionCandidate);
+    setCandidate(subtractionSolids_, subtractionCandidate);
 
     if (calcNorm && n != nullptr)
     {
         *n = (intersectionCandidate.signedDistance > -subtractionCandidate.signedDistance)
-        ? intersectionCandidate.norm : subtractionCandidate.norm;
+        ? intersectionCandidate.norm : -subtractionCandidate.norm;
     }
 
     return std::max(intersectionCandidate.signedDistance, -subtractionCandidate.signedDistance);
@@ -120,7 +118,7 @@ G4double G4HalfUnionSolid::SignedDistance(const G4ThreeVector& p, G4ThreeVector*
 
 G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
-    return std::min(0.0, this->SignedDistance(p, n, calcNorm));
+    return std::max(0.0, this->SignedDistance(p, n, calcNorm));
 }
 
 
@@ -132,7 +130,7 @@ G4double G4HalfUnionSolid::DistanceToIn(const G4ThreeVector& p) const
 
 G4double G4HalfUnionSolid::DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
-   return DistanceToOut(p, calcNorm, n);
+    return std::max(0.0, -this->SignedDistance(p, n, calcNorm));
 }
 
 
