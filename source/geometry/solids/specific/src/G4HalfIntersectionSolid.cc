@@ -133,7 +133,7 @@ G4double G4HalfIntersectionSolid::SignedDistance(const G4ThreeVector& p, G4Three
 
 G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
-    return std::min(0.0, SignedDistance(p, n, calcNorm));
+    return std::max(0.0, SignedDistance(p, n, calcNorm));
 }
 
 G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p) const
@@ -144,7 +144,7 @@ G4double G4HalfIntersectionSolid::DistanceToIn(const G4ThreeVector& p) const
 
 G4double G4HalfIntersectionSolid::DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const
 {
-    return std::min(0.0, SignedDistance(p, n, calcNorm));
+    return std::max(0.0, -SignedDistance(p, n, calcNorm));
 }
 
 
