@@ -46,7 +46,8 @@ void G4HalfSolid::GetSolidRayIntersections(const G4ThreeVector& p, const G4Three
 
 G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
-    if (this->Inside(p) != kOutside) return 0;
+    if (this->Inside(p) == kInside) return 0;
+
     if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude unit vector.");
 
     G4ThreeVector vUnit = v.unit();
@@ -67,11 +68,6 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
     if (validNorm != nullptr) *validNorm = false;
 
     if (this->Inside(p) == kOutside) return 0;
-    if (this->Inside(p) == kSurface)
-    {
-        if (calcNorm && n != nullptr) this->GetOnSurfaceNormal(p, *n);
-        return 0;
-    }
 
     const G4ThreeVector vUnit = v.unit();
 
@@ -108,7 +104,7 @@ G4ThreeVector G4HalfSolid::SurfaceNormal(const G4ThreeVector& p) const
 
     if (this->Inside(p) == kOutside) this->DistanceToIn(p, true, &normal);
 
-    GetOnSurfaceNormal(p, normal);
+    if (this->Inside(p) == kSurface) GetOnSurfaceNormal(p, normal);
 
     return normal;
 }

@@ -42,7 +42,7 @@ public:
 
     G4GeometryType GetEntityType() const override;
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
-                          G4double& pMin, G4double& pMax) const override{ return false;}
+                          G4double& pMin, G4double& pMax) const override;
     void DescribeYourselfTo(G4VGraphicsScene& scene) const override;
     std::ostream& StreamInfo(std::ostream& os) const override;
 };
