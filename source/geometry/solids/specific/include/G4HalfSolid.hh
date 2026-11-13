@@ -15,6 +15,8 @@ protected:
         G4double distance;
     };
 
+    virtual void GetOnSurfaceNormal(const G4ThreeVector&, G4ThreeVector&) const = 0;
+
 public:
     G4HalfSolid(const G4String& name) : G4VSolid(name) {};
 
@@ -26,10 +28,13 @@ public:
     G4double Subtraction(const G4ThreeVector&, const G4HalfSolid&) const;
 
     // Populates a vector of RayHit structs with data about where the ray intersected
-    virtual void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const = 0;
+    virtual void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&,
+        const G4bool) const = 0;
     virtual void GetSolidRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&, G4bool) const;
 
     EInside Inside(const G4ThreeVector&) const override;
+
+    virtual G4double SignedDistance(const G4ThreeVector&, G4ThreeVector*, const G4bool) const = 0;
 
     using G4VSolid::DistanceToOut;
     using G4VSolid::DistanceToIn;
@@ -37,8 +42,6 @@ public:
     // Calculates shortest distance from a point, passes normal by reference
     virtual G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const = 0;
     virtual G4double DistanceToOut(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const = 0;
-
-    virtual void GetOnSurfaceNormal(const G4ThreeVector&, G4ThreeVector&) const = 0;
 
     // Can be implemented in the base class if the derived classes have a defined GetRayIntersection
     G4double DistanceToIn(const G4ThreeVector&, const G4ThreeVector&) const override;

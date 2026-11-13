@@ -35,21 +35,19 @@ void G4HalfSolid::GetSolidRayIntersections(const G4ThreeVector& p, const G4Three
     };
 
     if (rayHits.empty() && !modifyRayHits)
-    {
-        this->GetPotentialRayIntersections(p, v, rayHits);
-    }
+        this->GetPotentialRayIntersections(p, v, rayHits, true);
 
     if (rayHits.empty() && modifyRayHits)
-    {
-        throw std::logic_error("G4HalfSolid::GetSolidRayIntersections: rayHits are empty, but modifyRayHits was set to true.");
-    }
+        throw std::logic_error("G4HalfSolid::GetSolidRayIntersections: rayHits is empty, but modifyRayHits was set to true.");
 
-    rayHits.erase(std::remove_if(rayHits.begin(), rayHits.end(), isNotOnSurface),rayHits.end());
+    if (!rayHits.empty() && modifyRayHits)
+        rayHits.erase(std::remove_if(rayHits.begin(), rayHits.end(), isNotOnSurface),rayHits.end());
 }
 
 G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
-    if (this->Inside(p) != kOutside) return 0;
+    if (this->Inside(p) == kInside) return 0;
+
     if (v.mag() == 0) throw std::logic_error("Cannot pass zero magnitude unit vector.");
 
     G4ThreeVector vUnit = v.unit();
@@ -58,9 +56,16 @@ G4double G4HalfSolid::DistanceToIn(const G4ThreeVector& p, const G4ThreeVector& 
 
     GetSolidRayIntersections(p, vUnit, rayHits, false);
 
-    if (rayHits.empty()) return kInfinity;
+    for (auto &hit : rayHits)
+    {
+        const G4ThreeVector before = hit.intersection - vUnit*kCarTolerance*2;
+        const G4ThreeVector after = hit.intersection + vUnit*kCarTolerance*2;
 
-    return rayHits[0].distance;
+        if (this->Inside(before) == kOutside && this->Inside(after) == kInside)
+            return hit.distance;
+    }
+
+    return kInfinity;
 }
 
 G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector& v,
@@ -70,11 +75,6 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
     if (validNorm != nullptr) *validNorm = false;
 
     if (this->Inside(p) == kOutside) return 0;
-    if (this->Inside(p) == kSurface)
-    {
-        if (calcNorm && n != nullptr) this->GetOnSurfaceNormal(p, *n);
-        return 0;
-    }
 
     const G4ThreeVector vUnit = v.unit();
 
@@ -82,18 +82,22 @@ G4double G4HalfSolid::DistanceToOut(const G4ThreeVector& p, const G4ThreeVector&
 
     GetSolidRayIntersections(p, vUnit, rayHits, false);
 
-    for (const RayHit& hit : rayHits)
+    for (auto &hit : rayHits)
     {
-        if (this->Inside(hit.intersection) == kSurface)
+        const G4ThreeVector before = hit.intersection - vUnit*kCarTolerance*2;
+        const G4ThreeVector after = hit.intersection + vUnit*kCarTolerance*2;
+
+
+        if (this->Inside(before) == kInside && this->Inside(after) == kOutside)
         {
+
             if (calcNorm && n != nullptr)
             {
                 *n = (hit.isSubtraction) ? -hit.targetSurface->SurfaceNormal(hit.intersection)
                                          : hit.targetSurface->SurfaceNormal(hit.intersection);
                 if (validNorm != nullptr) *validNorm = true;
             }
-
-            return std::abs(hit.distance);
+            return hit.distance;
         }
     }
 
@@ -111,7 +115,7 @@ G4ThreeVector G4HalfSolid::SurfaceNormal(const G4ThreeVector& p) const
 
     if (this->Inside(p) == kOutside) this->DistanceToIn(p, true, &normal);
 
-    GetOnSurfaceNormal(p, normal);
+    if (this->Inside(p) == kSurface) GetOnSurfaceNormal(p, normal);
 
     return normal;
 }

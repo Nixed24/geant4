@@ -4,31 +4,35 @@
 #include "G4HalfSurface.hh"
 #include "G4HalfSolid.hh"
 #include <vector>
+#include <memory>
 #include "G4VSolid.hh"
 
 class G4HalfIntersectionSolid : public G4HalfSolid
 {
-    std::vector<G4HalfSurface*> intersectionSurfaces_;
-    std::vector<G4HalfSurface*> subtractionSurfaces_;
+    std::vector<std::unique_ptr<G4HalfSurface>> intersectionSurfaces_;
+    std::vector<std::unique_ptr<G4HalfSurface>> subtractionSurfaces_;
+
+protected:
+    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
 
 public:
     using G4HalfSolid::DistanceToIn;
     using G4HalfSolid::DistanceToOut;
 
-    G4HalfIntersectionSolid(const std::vector<G4HalfSurface*>& intersectionSurfaces,
-                            const std::vector<G4HalfSurface*>& subtractionSurfaces,
+    G4HalfIntersectionSolid(std::vector<std::unique_ptr<G4HalfSurface>> intersectionSurfaces,
+                            std::vector<std::unique_ptr<G4HalfSurface>> subtractionSurfaces,
                             const G4String& name = "G4HalfIntersectionSolid");
 
-    void AddIntersectionSurface(G4HalfSurface& s);
-    void AddSubtractionSurface(G4HalfSurface& s);
+    void AddIntersectionSurface(std::unique_ptr<G4HalfSurface> s);
+    void AddSubtractionSurface(std::unique_ptr<G4HalfSurface> s);
 
     G4double ImplicitFunction(const G4ThreeVector &p) const override;
 
     // --- Inherited functions ---
     void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
-        std::vector<RayHit>&) const override;
+        std::vector<RayHit>&, const G4bool) const override;
 
-    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& normal) const override;
+    G4double SignedDistance(const G4ThreeVector&, G4ThreeVector*, const G4bool) const override;
 
     G4double DistanceToIn(const G4ThreeVector& p, const G4bool calcNorm, G4ThreeVector* n) const override;
     G4double DistanceToIn(const G4ThreeVector& p) const override;
@@ -40,7 +44,7 @@ public:
 
     G4GeometryType GetEntityType() const override;
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
-                          G4double& pMin, G4double& pMax) const override{ return false;}
+                          G4double& pMin, G4double& pMax) const override;
     void DescribeYourselfTo(G4VGraphicsScene& scene) const override;
     std::ostream& StreamInfo(std::ostream& os) const override;
 };

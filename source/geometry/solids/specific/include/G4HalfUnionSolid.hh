@@ -8,19 +8,22 @@
 
 class G4HalfUnionSolid : public G4HalfSolid
 {
-    std::vector<G4HalfSolid*> intersectionSolids_;
-    std::vector<G4HalfSolid*> subtractionSolids_;
+    std::vector<std::unique_ptr<G4HalfSolid>> intersectionSolids_;
+    std::vector<std::unique_ptr<G4HalfSolid>> subtractionSolids_;
+
+protected:
+    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const override;
 
 public:
     using G4HalfSolid::DistanceToIn;
     using G4HalfSolid::DistanceToOut;
 
-    G4HalfUnionSolid(const std::vector<G4HalfSolid*>& intersectionSolids,
-                            const std::vector<G4HalfSolid*>& subtractionSolids,
+    G4HalfUnionSolid(std::vector<std::unique_ptr<G4HalfSolid>> intersectionSolids,
+                            std::vector<std::unique_ptr<G4HalfSolid>> subtractionSolids,
                             const G4String& name = "G4HalfIntersectionSolid");
 
-    void AddIntersectionSolid(G4HalfIntersectionSolid& s);
-    void AddSubtractionSolid(G4HalfIntersectionSolid& s);
+    void AddIntersectionSolid(std::unique_ptr<G4HalfIntersectionSolid> s);
+    void AddSubtractionSolid(std::unique_ptr<G4HalfIntersectionSolid> s);
 
 
     // --- Inherited functions ---
@@ -33,13 +36,14 @@ public:
      * Leaving this virtual for now until stewart gives me his renderer
      */
     G4bool CalculateExtent(const EAxis pAxis, const G4VoxelLimits& pVoxelLimit, const G4AffineTransform& pTransform,
-                           G4double& pMin, G4double& pMax) const override {return false;}
+                           G4double& pMin, G4double& pMax) const override {return true;}
 
     G4double ImplicitFunction(const G4ThreeVector &p) const override;
 
-    void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&, std::vector<RayHit>&) const override;
+    void GetPotentialRayIntersections(const G4ThreeVector&, const G4ThreeVector&,
+        std::vector<RayHit>&, const G4bool) const override;
 
-    void GetOnSurfaceNormal(const G4ThreeVector& p, G4ThreeVector& norm) const override;
+    G4double SignedDistance(const G4ThreeVector& p, G4ThreeVector* n, const G4bool calcNorm) const override;
 
     /*
      * Calculates shortest distance to the inside of the solid.
