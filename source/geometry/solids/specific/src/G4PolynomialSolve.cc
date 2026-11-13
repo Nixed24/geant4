@@ -34,8 +34,8 @@ std::vector<G4double> G4PolynomialSolve::SolvePolynomial(const std::vector<G4dou
 
     if (discriminant > 0)
     {
-      G4double root1 = (-b + std::sqrt(discriminant)) / (2 * a);
-      G4double root2 = (-b - std::sqrt(discriminant)) / (2 * a); // should you really be doing this twice copilot?
+      G4double root1 = (-b + std::sqrt(discriminant)) / (2 * a); // RayIntersection(): farthest root returned in 0th index
+      G4double root2 = (-b - std::sqrt(discriminant)) / (2 * a);
       roots.push_back(root1);
       roots.push_back(root2);
     }
