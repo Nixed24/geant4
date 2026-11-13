@@ -12,7 +12,7 @@ G4RotationMatrix G4HalfQuadric::_T(const G4RotationMatrix & M)
 }
 std::vector<G4ThreeVector> G4HalfQuadric::GetLMContourIntersections(const G4ThreeVector& p) const
 {
-  G4PolynomialSolve polysolve;
+  const G4PolynomialSolve polysolve;
   const G4double r_x = p.x(), r_y = p.y(), r_z = p.z();
   const G4double M_0 = this->R;
   const G4double b_x = this->P.x() * 0.5, b_y = this->P.y() * 0.5, b_z = this->P.z() * 0.5;
@@ -347,10 +347,14 @@ std::vector<G4ThreeVector> G4HalfQuadric::RayIntersection(const G4ThreeVector& p
   // a = v_T Q v
   // b = 2 v_T Q p + v * P
   // c = p_T Q p + R
+  if (this->Inside(p) == kSurface)
+  {
+    return std::vector<G4ThreeVector> {p};
+  }
     G4double a = this->Q.xx() * v.x() * v.x() + this->Q.xy() * v.x() * v.y() + this->Q.xz() * v.x() * v.z()
   + this->Q.yx() * v.y() * v.x() + this->Q.yy() * v.y() * v.y() + this->Q.yz() * v.y() * v.z()
   + this->Q.zx() * v.z() * v.x() + this->Q.zy() * v.z() * v.y() + this->Q.zz() * v.z() * v.z();
-  if (a == 0) // check a = 0 for parallel i think
+  if (a == 0) // avoid div by zero when solving -- probably an exotic case
   {
     return std::vector<G4ThreeVector> {p};
   }
@@ -361,26 +365,14 @@ std::vector<G4ThreeVector> G4HalfQuadric::RayIntersection(const G4ThreeVector& p
   G4double c = this->Q.xx() * p.x() * p.x() + this->Q.xy() * p.x() * p.y() + this->Q.xz() * p.x() * p.z()
            + this->Q.yx() * p.y() * p.x() + this->Q.yy() * p.y() * p.y() + this->Q.yz() * p.y() * p.z()
            + this->Q.zx() * p.z() * p.x() + this->Q.zy() * p.z() * p.y() + this->Q.zz() * p.z() * p.z()
-  + this->R;
-
-  G4double discriminant = b * b - 4 * a * c;
-
-  if (discriminant < 0)
-  {
-    return std::vector<G4ThreeVector>();
-  }
-
-  G4double root_discriminant = pow(discriminant, 0.5);
-  G4double lambda_1 = (-1 * b + root_discriminant) / (2*a);
-  G4double lambda_2 = (-1 * b - root_discriminant) / (2*a);
+  + p * this->P + this->R;
+  const std::vector<G4double> coefficients {a,b,c};
   std::vector<G4ThreeVector> intersections;
-  if (lambda_1 >= 0)
+  const G4PolynomialSolve polysolve;
+  const std::vector<G4double> v_multipliers = polysolve.SolvePolynomial(coefficients);
+  for (auto it = v_multipliers.begin(); it != v_multipliers.end(); ++it)
   {
-    intersections.push_back(p + (lambda_1 * v));
-  }
-  if (lambda_2 >= 0)
-  {
-    intersections.push_back(p + (lambda_2 * v));
+    intersections.push_back(p + (*it) * v);
   }
   return intersections;
 }
@@ -421,10 +413,11 @@ G4ThreeVector G4HalfQuadric::ClosestSurfacePoint(const G4ThreeVector& p) const
 void G4HalfQuadric::Transform(const G4AffineTransform& t)
 {
   G4RotationMatrix rotate = t.NetRotation(); // M_ij
-  G4ThreeVector translate = t.NetTranslation(); // P_j
+  G4ThreeVector translate = t.NetTranslation(); // T_j
+  // this is the vector that the ORIGIN moves by, if a minus sign is missed then that is because the translation is of the object and not its occupied space.
   G4RotationMatrix Q_prime = _T(rotate) * this->Q * rotate;
   G4ThreeVector P_prime = 2 * (_T(rotate) * this->Q * translate) + (_T(rotate) * (this->P));
-  G4double R_prime = (this->P * translate) + (_T(this->Q) * translate) * translate;
+  G4double R_prime = (this->P * translate) + (_T(this->Q) * translate) * translate + this->R; // was missing this->R
   this->Q = Q_prime;
   this->P = P_prime;
   this->R = R_prime;

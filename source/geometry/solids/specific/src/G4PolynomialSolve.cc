@@ -4,10 +4,10 @@
 #include "G4JTPolynomialSolver.hh"
 #include "G4Types.hh"
 
-std::vector<double> G4PolynomialSolve::SolvePolynomial(const std::vector<G4double>& coefficients)
+std::vector<G4double> G4PolynomialSolve::SolvePolynomial(const std::vector<G4double>& coefficients)
 {
   // begin copilot written
-  std::vector<double> roots;
+  std::vector<G4double> roots;
 
   // Check if the polynomial is of degree 0
   if (coefficients.size() == 1)
@@ -18,7 +18,7 @@ std::vector<double> G4PolynomialSolve::SolvePolynomial(const std::vector<G4doubl
   // Check if the polynomial is of degree 1
   if (coefficients.size() == 2)
   {
-    double root = -1 * coefficients[1] / coefficients[0];
+    G4double root = -1 * coefficients[1] / coefficients[0];
     roots.push_back(root);
     return roots;
   }
@@ -26,22 +26,22 @@ std::vector<double> G4PolynomialSolve::SolvePolynomial(const std::vector<G4doubl
   // Check if the polynomial is of degree 2
   if (coefficients.size() == 3)
   {
-    double a = coefficients[0];
-    double b = coefficients[1];
-    double c = coefficients[2];
+    G4double a = coefficients[0];
+    G4double b = coefficients[1];
+    G4double c = coefficients[2];
 
-    double discriminant = b * b - 4 * a * c;
+    G4double discriminant = b * b - 4 * a * c;
 
     if (discriminant > 0)
     {
-      double root1 = (-b + std::sqrt(discriminant)) / (2 * a);
-      double root2 = (-b - std::sqrt(discriminant)) / (2 * a); // should you really be doing this twice copilot?
+      G4double root1 = (-b + std::sqrt(discriminant)) / (2 * a);
+      G4double root2 = (-b - std::sqrt(discriminant)) / (2 * a); // should you really be doing this twice copilot?
       roots.push_back(root1);
       roots.push_back(root2);
     }
     else if (discriminant == 0)
     {
-      double root = -b / (2 * a);
+      G4double root = -b / (2 * a);
       roots.push_back(root);
     }
     // If discriminant < 0, no real roots

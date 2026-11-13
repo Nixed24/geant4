@@ -15,7 +15,7 @@ class G4HalfQuadric : public G4HalfSurface {
 
     G4RotationMatrix Q; // Default constructor of G4RotationMatrix gives 3x3 identity
     G4ThreeVector P;
-    G4double R {-1}; // R = -1 gives a unit sphere at the origin
+    G4double R {-1}; // subsequently R = -1 gives a unit sphere at the origin
   public:
 
     G4RotationMatrix get_Q() const;
