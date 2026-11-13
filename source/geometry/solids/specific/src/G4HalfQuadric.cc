@@ -1,6 +1,5 @@
 #include <algorithm>
 #include <cmath>
-#include <array>
 #include "G4HalfQuadric.hh"
 #include "G4PolynomialSolve.hh"
 
