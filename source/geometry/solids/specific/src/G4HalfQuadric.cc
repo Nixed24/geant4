@@ -379,8 +379,12 @@ std::vector<G4ThreeVector> G4HalfQuadric::RayIntersection(const G4ThreeVector& p
 G4double G4HalfQuadric::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVector& v) const
 {
   std::vector<G4ThreeVector> intersections = this->RayIntersection(p,v);
-  // probably redundant
-  return std::min(intersections[0].mag(), intersections[1].mag());
+  std::vector<G4double> distances;
+  for (const auto& intersection : intersections)
+  {
+    distances.push_back((intersection - p).mag());
+  }
+  return *(std::min_element(distances.begin(), distances.end()));
 }
 
 std::ostream& G4HalfQuadric::StreamInfo(std::ostream& os) const
