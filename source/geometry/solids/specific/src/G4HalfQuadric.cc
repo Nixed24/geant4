@@ -357,9 +357,9 @@ std::vector<G4ThreeVector> G4HalfQuadric::RayIntersection(const G4ThreeVector& p
   {
     return std::vector<G4ThreeVector> {p};
   }
-  G4double b = this->Q.xx() * v.x() * p.x() + this->Q.xy() * v.x() * p.y() + this->Q.xz() * v.x() * p.z()
+  G4double b = 2 * (this->Q.xx() * v.x() * p.x() + this->Q.xy() * v.x() * p.y() + this->Q.xz() * v.x() * p.z()
 + this->Q.yx() * v.y() * p.x() + this->Q.yy() * v.y() * p.y() + this->Q.yz() * v.y() * p.z()
-+ this->Q.zx() * v.z() * p.x() + this->Q.zy() * v.z() * p.y() + this->Q.zz() * v.z() * p.z()
++ this->Q.zx() * v.z() * p.x() + this->Q.zy() * v.z() * p.y() + this->Q.zz() * v.z() * p.z())
   + (this->P * v);
   G4double c = this->Q.xx() * p.x() * p.x() + this->Q.xy() * p.x() * p.y() + this->Q.xz() * p.x() * p.z()
            + this->Q.yx() * p.y() * p.x() + this->Q.yy() * p.y() * p.y() + this->Q.yz() * p.y() * p.z()
