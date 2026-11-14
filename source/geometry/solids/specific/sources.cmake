@@ -4,11 +4,11 @@
 geant4_add_module(G4specsolids
   PUBLIC_HEADERS
     #
-    G4HalfSurface.hh
-    G4HalfPlane.hh
-    G4HalfSolid.hh
-    G4HalfIntersectionSolid.hh
-    G4HalfUnionSolid.hh
+        G4HalfSurface.hh
+        G4HalfPlane.hh
+        G4HalfSolid.hh
+        G4HalfIntersectionSolid.hh
+        G4HalfUnionSolid.hh
     G4ClippablePolygon.hh
     G4ClippablePolygon.icc
     G4Ellipsoid.hh
@@ -24,9 +24,15 @@ geant4_add_module(G4specsolids
     G4GenericPolycone.icc
     G4GenericTrap.hh
     G4GenericTrap.icc
+        G4HalfIntersectionSolid.hh
+        G4HalfPlane.hh
         G4HalfQuadric.hh
+        G4HalfSolid.hh
+        G4HalfSurface.hh
+        G4HalfUnionSolid.hh
     G4Hype.hh
     G4Hype.icc
+        G4ImplicitSurfaceCGAL.hh
     G4IntersectingCone.hh
     G4Paraboloid.hh
     G4Paraboloid.icc
@@ -46,6 +52,7 @@ geant4_add_module(G4specsolids
     G4ReduciblePolygon.hh
     G4SolidExtentList.hh
     G4SolidsWorkspace.hh
+        G4SurfaceMeshCGAL.hh
     G4SurfBits.hh
     G4SurfBits.icc
     G4TessellatedGeometryAlgorithms.hh
@@ -89,11 +96,6 @@ geant4_add_module(G4specsolids
     G4VTwistSurface.icc
     G4VTwistedFaceted.hh
   SOURCES
-    G4HalfSurface.cc
-    G4HalfPlane.cc
-    G4HalfSolid.cc
-    G4HalfIntersectionSolid.cc
-    G4HalfUnionSolid.cc
     G4ClippablePolygon.cc
     G4Ellipsoid.cc
     G4EllipticalCone.cc
@@ -102,8 +104,14 @@ geant4_add_module(G4specsolids
     G4ExtrudedSolid.cc
     G4GenericPolycone.cc
     G4GenericTrap.cc
-        G4HalfQuadric.cc
     G4Hype.cc
+        G4HalfIntersectionSolid.cc
+        G4HalfPlane.cc
+        G4HalfQuadric.cc
+        G4HalfSolid.cc
+        G4HalfSurface.cc
+        G4HalfUnionSolid.cc
+        G4ImplicitSurfaceCGAL.cc
     G4IntersectingCone.cc
     G4Paraboloid.cc
     G4PolyPhiFace.cc
@@ -118,6 +126,7 @@ geant4_add_module(G4specsolids
     G4ReduciblePolygon.cc
     G4SolidExtentList.cc
     G4SolidsWorkspace.cc
+        G4SurfaceMeshCGAL.cc
     G4SurfBits.cc
     G4TessellatedGeometryAlgorithms.cc
     G4TessellatedSolid.cc
@@ -155,4 +164,6 @@ geant4_add_module(G4specsolids
 geant4_module_link_libraries(G4specsolids
   PUBLIC G4csg G4geometrymng G4hepnumerics G4graphics_reps G4globman G4hepgeometry ${VECGEOM_LIBRARIES}
   PRIVATE G4heprandom)
+
+#
 
