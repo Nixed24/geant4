@@ -27,7 +27,6 @@ add_subdirectory(run)
 add_subdirectory(track)
 add_subdirectory(tracking)
 add_subdirectory(visualization)
-
 # Optional reset of categories
 # This is *only for build testing purposes* as the resultant libraries are not
 # usable by tests, examples, or any other client application

@@ -6,8 +6,6 @@
 #include "G4Polyhedron.hh"
 #include "G4TessellatedSolid.hh"
 #include "G4TriangularFacet.hh"
-#include "G4PolyhedronArbitrary.hh"
-
 #include <CGAL/Polygon_mesh_processing/corefinement.h>
 #include <CGAL/Polygon_mesh_processing/transform.h>
 #include <CGAL/Polygon_mesh_processing/repair.h>
@@ -16,7 +14,10 @@
 #include <CGAL/Polygon_mesh_processing/polygon_mesh_to_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Polygon_mesh_processing/orientation.h>
+#include <CGAL/IO/Nef_polyhedron_iostream_3.h>
 // #include <CGAL/Polygon_mesh_processing/remesh.h>
+#include "CGAL/Polygon_mesh_processing/triangulate_faces.h"
+//#include "CGAL/Polygon_mesh_processing/transform.h"
 
 #include <CGAL/boost/graph/helpers.h>
 

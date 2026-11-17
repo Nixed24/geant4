@@ -2,6 +2,7 @@
 #include <cmath>
 #include "G4HalfQuadric.hh"
 #include "G4PolynomialSolve.hh"
+#include "G4ImplicitSurfaceCGAL.hh"
 
 G4RotationMatrix G4HalfQuadric::_T(const G4RotationMatrix & M)
 {
@@ -9,6 +10,156 @@ G4RotationMatrix G4HalfQuadric::_T(const G4RotationMatrix & M)
   M_T.set(M.rowX(), M.rowY(), M.rowZ()); // set columns to rows
   return M_T;
 }
+
+G4RotationMatrix G4HalfQuadric::get_Q() const
+{
+  return this->Q;
+}
+G4ThreeVector G4HalfQuadric::get_P() const
+{
+  return this->P;
+}
+G4double G4HalfQuadric::get_R() const
+{
+  return this->R;
+}
+void G4HalfQuadric::set_Q(const G4RotationMatrix& new_Q)
+{
+  this->Q = new_Q; // could have symmetry enforcement here
+}
+void G4HalfQuadric::set_P(const G4ThreeVector& new_P)
+{
+  this->P = new_P;
+}
+void G4HalfQuadric::set_R(G4double new_R)
+{
+  this->R = new_R;
+}
+
+G4double G4HalfQuadric::ImplicitFunction(const G4ThreeVector& p) const
+{
+  // x_T Q x + P dot x + R
+  // P is a Hep3Vector, Q is a HepRotation/RotationMatrix
+  G4double x_T_Q_x = this->Q.xx() * p.x() * p.x() + this->Q.xy() * p.x() * p.y() + this->Q.xz() * p.x() * p.z()
+           + this->Q.yx() * p.y() * p.x() + this->Q.yy() * p.y() * p.y() + this->Q.yz() * p.y() * p.z()
+           + this->Q.zx() * p.z() * p.x() + this->Q.zy() * p.z() * p.y() + this->Q.zz() * p.z() * p.z();
+  G4double P_x = this->P * p;
+  return x_T_Q_x + P_x + this->R;
+}
+
+std::vector<G4ThreeVector> G4HalfQuadric::RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v) const
+{
+  // a = v_T Q v
+  // b = 2 v_T Q p + v * P
+  // c = p_T Q p + R
+  if (this->Inside(p) == kSurface)
+  {
+    return std::vector<G4ThreeVector> {p};
+  }
+    G4double a = this->Q.xx() * v.x() * v.x() + this->Q.xy() * v.x() * v.y() + this->Q.xz() * v.x() * v.z()
+  + this->Q.yx() * v.y() * v.x() + this->Q.yy() * v.y() * v.y() + this->Q.yz() * v.y() * v.z()
+  + this->Q.zx() * v.z() * v.x() + this->Q.zy() * v.z() * v.y() + this->Q.zz() * v.z() * v.z();
+  if (a == 0) // avoid div by zero when solving -- probably an exotic case
+  {
+    return std::vector<G4ThreeVector> {p};
+  }
+  G4double b = 2 * (this->Q.xx() * v.x() * p.x() + this->Q.xy() * v.x() * p.y() + this->Q.xz() * v.x() * p.z()
++ this->Q.yx() * v.y() * p.x() + this->Q.yy() * v.y() * p.y() + this->Q.yz() * v.y() * p.z()
++ this->Q.zx() * v.z() * p.x() + this->Q.zy() * v.z() * p.y() + this->Q.zz() * v.z() * p.z())
+  + (this->P * v);
+  G4double c = this->Q.xx() * p.x() * p.x() + this->Q.xy() * p.x() * p.y() + this->Q.xz() * p.x() * p.z()
+           + this->Q.yx() * p.y() * p.x() + this->Q.yy() * p.y() * p.y() + this->Q.yz() * p.y() * p.z()
+           + this->Q.zx() * p.z() * p.x() + this->Q.zy() * p.z() * p.y() + this->Q.zz() * p.z() * p.z()
+  + p * this->P + this->R;
+  const std::vector<G4double> coefficients {a,b,c};
+  std::vector<G4ThreeVector> intersections;
+  const G4PolynomialSolve polysolve;
+  const std::vector<G4double> v_multipliers = polysolve.SolvePolynomial(coefficients);
+  for (auto it = v_multipliers.begin(); it != v_multipliers.end(); ++it)
+  {
+    intersections.push_back(p + (*it) * v);
+  }
+  return intersections;
+}
+G4double G4HalfQuadric::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVector& v) const
+{
+  std::vector<G4ThreeVector> intersections = this->RayIntersection(p,v);
+  std::vector<G4double> distances;
+  for (const auto& intersection : intersections)
+  {
+    distances.push_back((intersection - p).mag());
+  }
+  return *(std::min_element(distances.begin(), distances.end()));
+}
+
+std::ostream& G4HalfQuadric::StreamInfo(std::ostream& os) const
+{
+    os << "--- Half Surface Quadric ---" << std::endl;
+    return os;
+}
+
+G4ThreeVector G4HalfQuadric::SurfaceNormal(const G4ThreeVector& p) const
+{
+  G4double grad_x = 2 * (Q.xx() * p[0] + Q.xy() * p[1] + Q.xz() * p[2]);
+  G4double grad_y = 2 * (Q.yy() * p[0] + Q.yx() * p[1] + Q.yz() * p[2]);
+  G4double grad_z = 2 * (Q.zz() * p[0] + Q.zx() * p[1] + Q.zy() * p[2]);
+  G4ThreeVector grad {grad_x, grad_y, grad_z};
+  return grad;
+}
+G4ThreeVector G4HalfQuadric::ClosestSurfacePoint(const G4ThreeVector& p) const
+{
+  const std::vector<G4ThreeVector> candidate_points = GetLMContourIntersections(p);
+  std::vector<G4double> distances;
+  for (const auto& candidate_point : candidate_points)
+  {
+    distances.push_back((candidate_point - p).mag());
+  }
+  const auto min_distance = std::min_element(distances.begin(), distances.end());
+  const G4int element_index = std::distance(distances.begin(), min_distance);
+  return candidate_points[element_index];
+}
+
+void G4HalfQuadric::Transform(const G4AffineTransform& t)
+{
+  G4RotationMatrix rotate = t.NetRotation(); // M_ij
+  G4ThreeVector translate = t.NetTranslation(); // T_j
+  // this is the vector that the ORIGIN moves by, if a minus sign is missed then that is because the translation is of the object and not its occupied space.
+  G4RotationMatrix Q_prime = _T(rotate) * this->Q * rotate;
+  G4ThreeVector P_prime = 2 * (_T(rotate) * this->Q * translate) + (_T(rotate) * (this->P));
+  G4double R_prime = (this->P * translate) + (_T(this->Q) * translate) * translate + this->R; // was missing this->R
+  this->set_Q(Q_prime);
+  this->set_P(P_prime);
+  this->set_R(R_prime);
+  return;
+}
+
+
+
+G4double G4HalfQuadric::DistanceToSurface(const G4ThreeVector& p) const
+{
+  std::vector<G4ThreeVector> candidate_points = GetLMContourIntersections(p);
+  std::vector<G4double> candidate_distances;
+  for (const auto& candidate_point : candidate_points) // oh cool, copilot generated this
+  {
+    candidate_distances.push_back((candidate_point - p).mag());
+  }
+  const auto min_distance = std::min_element(candidate_distances.begin(), candidate_distances.end());
+  return *min_distance;
+}
+
+G4SurfaceMeshCGAL* G4HalfQuadric::GetSurfaceMesh() {
+
+#if _DEBUG
+  G4cout << rot.ToString() << G4endl;
+  G4cout << "G4HalfSpaceQuadric::GetSurfaceMesh" << std::endl;
+#endif
+
+  // mesh quadric mesh
+  return make_mesh(*this, 3000*3000);
+
+
+}
+
 std::vector<G4ThreeVector> G4HalfQuadric::GetLMContourIntersections(const G4ThreeVector& p) const
 {
   const G4PolynomialSolve polysolve;
@@ -303,138 +454,4 @@ pow(a,2)*pow(e,2)*i*pow(r_z,2)-2*a*pow(b,2)*e*i*pow(r_z,2)+pow(b,4)*i*pow(r_z,2)
     candidate_points.push_back(candidate_point);
   }
   return candidate_points;
-}
-
-G4RotationMatrix G4HalfQuadric::get_Q() const
-{
-  return this->Q;
-}
-G4ThreeVector G4HalfQuadric::get_P() const
-{
-  return this->P;
-}
-G4double G4HalfQuadric::get_R() const
-{
-  return this->R;
-}
-void G4HalfQuadric::set_Q(const G4RotationMatrix& new_Q)
-{
-  this->Q = new_Q;
-}
-void G4HalfQuadric::set_P(const G4ThreeVector& new_P)
-{
-  this->P = new_P;
-}
-void G4HalfQuadric::set_R(G4double new_R)
-{
-  this->R = new_R;
-}
-
-G4double G4HalfQuadric::ImplicitFunction(const G4ThreeVector& p) const
-{
-  // x_T Q x + P dot x + R
-  // P is a Hep3Vector, Q is a HepRotation/RotationMatrix
-  G4double x_T_Q_x = this->Q.xx() * p.x() * p.x() + this->Q.xy() * p.x() * p.y() + this->Q.xz() * p.x() * p.z()
-           + this->Q.yx() * p.y() * p.x() + this->Q.yy() * p.y() * p.y() + this->Q.yz() * p.y() * p.z()
-           + this->Q.zx() * p.z() * p.x() + this->Q.zy() * p.z() * p.y() + this->Q.zz() * p.z() * p.z();
-  G4double P_x = this->P * p;
-  return x_T_Q_x + P_x + this->R;
-}
-
-std::vector<G4ThreeVector> G4HalfQuadric::RayIntersection(const G4ThreeVector& p, const G4ThreeVector& v) const
-{
-  // a = v_T Q v
-  // b = 2 v_T Q p + v * P
-  // c = p_T Q p + R
-  if (this->Inside(p) == kSurface)
-  {
-    return std::vector<G4ThreeVector> {p};
-  }
-    G4double a = this->Q.xx() * v.x() * v.x() + this->Q.xy() * v.x() * v.y() + this->Q.xz() * v.x() * v.z()
-  + this->Q.yx() * v.y() * v.x() + this->Q.yy() * v.y() * v.y() + this->Q.yz() * v.y() * v.z()
-  + this->Q.zx() * v.z() * v.x() + this->Q.zy() * v.z() * v.y() + this->Q.zz() * v.z() * v.z();
-  if (a == 0) // avoid div by zero when solving -- probably an exotic case
-  {
-    return std::vector<G4ThreeVector> {p};
-  }
-  G4double b = 2 * (this->Q.xx() * v.x() * p.x() + this->Q.xy() * v.x() * p.y() + this->Q.xz() * v.x() * p.z()
-+ this->Q.yx() * v.y() * p.x() + this->Q.yy() * v.y() * p.y() + this->Q.yz() * v.y() * p.z()
-+ this->Q.zx() * v.z() * p.x() + this->Q.zy() * v.z() * p.y() + this->Q.zz() * v.z() * p.z())
-  + (this->P * v);
-  G4double c = this->Q.xx() * p.x() * p.x() + this->Q.xy() * p.x() * p.y() + this->Q.xz() * p.x() * p.z()
-           + this->Q.yx() * p.y() * p.x() + this->Q.yy() * p.y() * p.y() + this->Q.yz() * p.y() * p.z()
-           + this->Q.zx() * p.z() * p.x() + this->Q.zy() * p.z() * p.y() + this->Q.zz() * p.z() * p.z()
-  + p * this->P + this->R;
-  const std::vector<G4double> coefficients {a,b,c};
-  std::vector<G4ThreeVector> intersections;
-  const G4PolynomialSolve polysolve;
-  const std::vector<G4double> v_multipliers = polysolve.SolvePolynomial(coefficients);
-  for (auto it = v_multipliers.begin(); it != v_multipliers.end(); ++it)
-  {
-    intersections.push_back(p + (*it) * v);
-  }
-  return intersections;
-}
-G4double G4HalfQuadric::DistanceToSurface(const G4ThreeVector& p, const G4ThreeVector& v) const
-{
-  std::vector<G4ThreeVector> intersections = this->RayIntersection(p,v);
-  std::vector<G4double> distances;
-  for (const auto& intersection : intersections)
-  {
-    distances.push_back((intersection - p).mag());
-  }
-  return *(std::min_element(distances.begin(), distances.end()));
-}
-
-std::ostream& G4HalfQuadric::StreamInfo(std::ostream& os) const
-{
-    os << "--- Half Surface Quadric ---" << std::endl;
-    return os;
-}
-
-G4ThreeVector G4HalfQuadric::SurfaceNormal(const G4ThreeVector& p) const
-{
-  G4double grad_x = 2 * (Q.xx() * p[0] + Q.xy() * p[1] + Q.xz() * p[2]);
-  G4double grad_y = 2 * (Q.yy() * p[0] + Q.yx() * p[1] + Q.yz() * p[2]);
-  G4double grad_z = 2 * (Q.zz() * p[0] + Q.zx() * p[1] + Q.zy() * p[2]);
-  G4ThreeVector grad {grad_x, grad_y, grad_z};
-  return grad;
-}
-G4ThreeVector G4HalfQuadric::ClosestSurfacePoint(const G4ThreeVector& p) const
-{
-  const std::vector<G4ThreeVector> candidate_points = GetLMContourIntersections(p);
-  std::vector<G4double> distances;
-  for (const auto& candidate_point : candidate_points)
-  {
-    distances.push_back((candidate_point - p).mag());
-  }
-  const auto min_distance = std::min_element(distances.begin(), distances.end());
-  const G4int element_index = std::distance(distances.begin(), min_distance);
-  return candidate_points[element_index];
-}
-
-void G4HalfQuadric::Transform(const G4AffineTransform& t)
-{
-  G4RotationMatrix rotate = t.NetRotation(); // M_ij
-  G4ThreeVector translate = t.NetTranslation(); // T_j
-  // this is the vector that the ORIGIN moves by, if a minus sign is missed then that is because the translation is of the object and not its occupied space.
-  G4RotationMatrix Q_prime = _T(rotate) * this->Q * rotate;
-  G4ThreeVector P_prime = 2 * (_T(rotate) * this->Q * translate) + (_T(rotate) * (this->P));
-  G4double R_prime = (this->P * translate) + (_T(this->Q) * translate) * translate + this->R; // was missing this->R
-  this->Q = Q_prime;
-  this->P = P_prime;
-  this->R = R_prime;
-  return;
-}
-
-G4double G4HalfQuadric::DistanceToSurface(const G4ThreeVector& p) const
-{
-  std::vector<G4ThreeVector> candidate_points = GetLMContourIntersections(p);
-  std::vector<G4double> candidate_distances;
-  for (const auto& candidate_point : candidate_points) // oh cool, copilot generated this
-  {
-    candidate_distances.push_back((candidate_point - p).mag());
-  }
-  const auto min_distance = std::min_element(candidate_distances.begin(), candidate_distances.end());
-  return *min_distance;
 }

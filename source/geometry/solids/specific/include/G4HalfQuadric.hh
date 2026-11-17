@@ -7,6 +7,7 @@
 #include "G4Types.hh"
 #include "G4VSolid.hh"
 #include "G4RotationMatrix.hh"
+#include "G4SurfaceMeshCGAL.hh"
 class G4HalfQuadric : public G4HalfSurface {
   private:
 
@@ -40,6 +41,8 @@ class G4HalfQuadric : public G4HalfSurface {
     G4ThreeVector ClosestSurfacePoint(const G4ThreeVector& p) const override;
 
     void Transform(const G4AffineTransform& t) override;
+
+    G4SurfaceMeshCGAL* GetSurfaceMesh() override;
 
     std::ostream& StreamInfo(std::ostream&) const override;
 };

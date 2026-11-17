@@ -1,14 +1,8 @@
 # - G4specsolids module build definition
-
 # Define the Geant4 Module.
 geant4_add_module(G4specsolids
   PUBLIC_HEADERS
     #
-        G4HalfSurface.hh
-        G4HalfPlane.hh
-        G4HalfSolid.hh
-        G4HalfIntersectionSolid.hh
-        G4HalfUnionSolid.hh
     G4ClippablePolygon.hh
     G4ClippablePolygon.icc
     G4Ellipsoid.hh
@@ -92,6 +86,7 @@ geant4_add_module(G4specsolids
     G4VFacet.hh
     G4Voxelizer.hh
     G4Voxelizer.icc
+        G4VSurfaceMesh.hh
     G4VTwistSurface.hh
     G4VTwistSurface.icc
     G4VTwistedFaceted.hh
@@ -158,6 +153,7 @@ geant4_add_module(G4specsolids
     G4VCSGfaceted.cc
     G4VFacet.cc
     G4Voxelizer.cc
+        G4VSurfaceMesh.cc
     G4VTwistSurface.cc
     G4VTwistedFaceted.cc)
 
@@ -165,5 +161,8 @@ geant4_module_link_libraries(G4specsolids
   PUBLIC G4csg G4geometrymng G4hepnumerics G4graphics_reps G4globman G4hepgeometry ${VECGEOM_LIBRARIES}
   PRIVATE G4heprandom)
 
+#FIND_PACKAGE(Boost REQUIRED)
+#include_directories(${Boost_INCLUDE_DIRS})
+#link_libraries(${Boost_FILESYSTEM_LIBRARY})
 #
 

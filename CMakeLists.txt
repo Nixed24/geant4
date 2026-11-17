@@ -41,7 +41,6 @@ set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_
 set(CMAKE_MODULE_PATH
   ${PROJECT_SOURCE_DIR}/cmake/Modules
   ${CMAKE_MODULE_PATH})
-
 #-----------------------------------------------------------------------
 # - Include CMake category main module
 #   Factored into category for convenience in tagging

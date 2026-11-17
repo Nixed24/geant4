@@ -29,8 +29,8 @@ typedef CGAL::Surface_mesh<Point_3_GT> Surface_mesh_GT;
 
 namespace PMP = CGAL::Polygon_mesh_processing;
 
-class G4HalfSpaceQuadric;
+class G4HalfQuadric;
 class G4SurfaceMeshCGAL;
 
-G4SurfaceMeshCGAL* make_mesh(G4HalfSpaceQuadric &quadric, double sphere_size);
+G4SurfaceMeshCGAL* make_mesh(G4HalfQuadric &quadric, double sphere_size);
 #endif  // GEANT4_G4IMPLICITSURFACECGAL_HH

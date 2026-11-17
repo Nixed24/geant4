@@ -10,14 +10,14 @@ FT_GT sphere_function (Point_3_GT p) {
   return x2+y2+z2-1000*1000;
 }
 
-G4SurfaceMeshCGAL* make_mesh(G4HalfSpaceQuadric &quadric, double sphere_size) {
+G4SurfaceMeshCGAL* make_mesh(G4HalfQuadric &quadric, double sphere_size) {
   G4cout << "G4ImplicitSufaceCGAL make_mesh" << std::endl;
   Tr tr;            // 3D-Delaunay triangulation
   C2t3 c2t3 (tr);   // 2D-complex in 3D-Delaunay triangulation
 
   std::function<FT_GT(Point_3_GT)> surface_function = [&quadric](Point_3_GT p){
     G4ThreeVector g4_p(p.x(), p.y(), p.z());
-    return quadric.Sdf(g4_p);
+    return quadric.ImplicitFunction(g4_p);
   };
 
   // defining the surface
@@ -44,7 +44,7 @@ G4SurfaceMeshCGAL* make_mesh(G4HalfSpaceQuadric &quadric, double sphere_size) {
 
   auto displaced = vertex + 3*normal;
 
-  auto sgn = quadric.Sdf(G4ThreeVector(CGAL::to_double(displaced.x()),
+  auto sgn = quadric.ImplicitFunction(G4ThreeVector(CGAL::to_double(displaced.x()),
                                        CGAL::to_double(displaced.y()),
                                        CGAL::to_double(displaced.z())));
 

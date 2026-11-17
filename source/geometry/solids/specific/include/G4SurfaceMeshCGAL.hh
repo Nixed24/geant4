@@ -6,35 +6,29 @@
 #define GEANT4_G4SURFACEMESHCGAL_HH
 
 #include <iostream>
-
-class G4Polyhedron;
-class G4TessellatedSolid;
+//class G4Polyhedron;
+//class G4TessellatedSolid;
+#include "G4TessellatedSolid.hh"
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wgnu-statement-expression"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wshadow"
+//#pragma GCC diagnostic ignored "-Wgnu-statement-expression"
+//#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include <CGAL/Exact_rational.h>
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Extended_cartesian.h>
-
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/Polyhedron_incremental_builder_3.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/Nef_polyhedron_3.h>
-#include <CGAL/IO/Nef_polyhedron_iostream_3.h>
 
 #include "CGAL/Aff_transformation_3.h"
 
-#include "CGAL/Polygon_mesh_processing/corefinement.h"
-#include "CGAL/Polygon_mesh_processing/orientation.h"
 #include "CGAL/Polygon_mesh_processing/repair.h"
-#include "CGAL/Polygon_mesh_processing/transform.h"
-#include "CGAL/Polygon_mesh_processing/triangulate_faces.h"
 
 
 typedef CGAL::Exact_rational ER;
